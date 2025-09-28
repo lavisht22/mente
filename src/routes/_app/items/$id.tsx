@@ -5,6 +5,8 @@ import {
 	ModalBody,
 	ModalContent,
 	ModalHeader,
+	Select,
+	SelectItem,
 	Textarea,
 } from "@heroui/react";
 import {
@@ -16,6 +18,7 @@ import {
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import { spacesQuery } from "@/lib/queries";
 import supabase from "@/lib/supabase";
 import { LucideX } from "lucide-react";
 
@@ -44,15 +47,18 @@ function RouteComponent() {
 
 	const { history } = useRouter();
 	const { data: item } = useQuery(itemQuery(id));
+	const { data: spaces } = useQuery(spacesQuery);
 	const queryClient = useQueryClient();
 
 	const [title, setTitle] = useState(item?.title ?? "");
 	const [markdown, setMarkdown] = useState(item?.markdown ?? "");
+	const [spaceId, setSpaceId] = useState<string | null>(item?.space_id ?? null);
 
 	useEffect(() => {
 		if (item) {
 			setTitle(item.title ?? "");
 			setMarkdown(item.markdown ?? "");
+			setSpaceId(item.space_id ?? null);
 		}
 	}, [item]);
 
@@ -60,6 +66,7 @@ function RouteComponent() {
 		mutationFn: async (updatedFields: {
 			title?: string;
 			markdown?: string;
+			space_id?: string | null;
 		}) => {
 			if (!item) return;
 
@@ -79,15 +86,19 @@ function RouteComponent() {
 	useEffect(() => {
 		const handler = setTimeout(() => {
 			if (!item) return;
-			if (title !== item.title || markdown !== item.markdown) {
-				updateItem({ title, markdown });
+			if (
+				title !== item.title ||
+				markdown !== item.markdown ||
+				spaceId !== item.space_id
+			) {
+				updateItem({ title, markdown, space_id: spaceId });
 			}
 		}, 500);
 
 		return () => {
 			clearTimeout(handler);
 		};
-	}, [title, markdown, item, updateItem]);
+	}, [title, markdown, spaceId, item, updateItem]);
 
 	return (
 		<Modal
@@ -98,7 +109,17 @@ function RouteComponent() {
 		>
 			<ModalContent>
 				<ModalHeader className="flex justify-between items-center gap-4">
-					<div>Item</div>
+					<Select
+						placeholder="Space"
+						selectedKeys={spaceId ? [spaceId] : []}
+						onSelectionChange={(keys) =>
+							setSpaceId(Array.from(keys)[0] as string)
+						}
+					>
+						{(spaces ?? []).map((space) => (
+							<SelectItem key={space.id}>{space.name}</SelectItem>
+						))}
+					</Select>
 
 					<div>
 						<Button

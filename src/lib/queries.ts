@@ -2,6 +2,20 @@ import { queryOptions } from "@tanstack/react-query";
 
 import supabase from "./supabase";
 
+export const spacesQuery = queryOptions({
+    queryKey: ["spaces"],
+    queryFn: async () => {
+        const { data, error } = await supabase
+            .from("spaces")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        return data;
+    },
+});
+
 export const itemsQuery = queryOptions({
     queryKey: ["items"],
     queryFn: async () => {
