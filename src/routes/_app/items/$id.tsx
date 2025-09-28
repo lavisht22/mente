@@ -13,7 +13,11 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	useNavigate,
+	useRouter,
+} from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import supabase from "@/lib/supabase";
@@ -41,6 +45,7 @@ const itemQuery = (id: string) =>
 
 function RouteComponent() {
 	const { id } = Route.useParams();
+	const { history } = useRouter();
 	const { data: item } = useQuery(itemQuery(id));
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
@@ -55,16 +60,18 @@ function RouteComponent() {
 		}
 	}, [item]);
 
-	const { mutate: updateItem } = useMutation({
+	const { mutate: updateItem, isPending: isSaving } = useMutation({
 		mutationFn: async (updatedFields: {
 			title?: string;
 			markdown?: string;
 		}) => {
 			if (!item) return;
+
 			const { error } = await supabase
 				.from("items")
 				.update(updatedFields)
 				.eq("id", item.id);
+
 			if (error) throw error;
 		},
 		onSuccess: () => {
@@ -90,7 +97,7 @@ function RouteComponent() {
 		<Modal
 			backdrop="blur"
 			isOpen
-			onOpenChange={() => navigate({ to: ".." })}
+			onOpenChange={() => !isSaving && history.go(-1)}
 			hideCloseButton
 		>
 			<ModalContent>
@@ -98,7 +105,12 @@ function RouteComponent() {
 					<div>Item</div>
 
 					<div>
-						<Button variant="flat" isIconOnly>
+						<Button
+							variant="flat"
+							isIconOnly
+							isLoading={isSaving}
+							onPress={() => history.go(-1)}
+						>
 							<LucideX className="size-4" />
 						</Button>
 					</div>
