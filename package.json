@@ -10,10 +10,12 @@
     "test": "vitest run",
     "format": "biome format",
     "lint": "biome lint",
-    "check": "biome check"
+    "check": "biome check",
+    "supabase:types": "supabase gen types typescript --local --schema public > src/lib/supabase.types.ts"
   },
   "dependencies": {
     "@heroui/react": "^2.8.4",
+    "@supabase/supabase-js": "^2.58.0",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/react-devtools": "^0.2.2",
     "@tanstack/react-router": "^1.132.0",

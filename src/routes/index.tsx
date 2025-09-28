@@ -1,12 +1,25 @@
 import { createFileRoute } from '@tanstack/react-router'
 import logo from '../logo.svg'
 import { Button } from '@heroui/react'
+import supabase from '@/lib/supabase'
+import { useEffect } from 'react'
 
 export const Route = createFileRoute('/')({
   component: App,
 })
 
 function App() {
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+
+      console.log("User:", data.user);
+    };
+
+    fetchUser();
+  }, [])
+
   return (
     <div className="text-center">
       <Button color='primary'>HeroUI!</Button>
