@@ -24,7 +24,7 @@ Mente is a second brain AI application designed to help users organize, connect,
 
 - **Biome** - Code formatting and linting
 - **Vitest** - Testing framework
-- **pnpm** - Package manager
+- **npm** - Package manager
 
 ## Development Guidelines
 
@@ -125,9 +125,9 @@ src/
 ### Biome Configuration
 
 - Follow the project's Biome configuration in `biome.json`
-- Run `pnpm format` before committing
-- Run `pnpm lint` to check for issues
-- Use `pnpm check` for comprehensive checks
+- Run `npm format` before committing
+- Run `npm lint` to check for issues
+- Use `npm check` for comprehensive checks
 
 ### Best Practices
 
@@ -195,12 +195,12 @@ export default function NoteCard({
 
 ### Development
 
-- `pnpm dev` - Start development server on port 3000
-- `pnpm build` - Build for production
-- `pnpm test` - Run tests
-- `pnpm format` - Format code with Biome
-- `pnpm lint` - Lint code with Biome
-- `pnpm check` - Run all Biome checks
+- `npm dev` - Start development server on port 3000
+- `npm build` - Build for production
+- `npm test` - Run tests
+- `npm format` - Format code with Biome
+- `npm lint` - Lint code with Biome
+- `npm check` - Run all Biome checks
 
 ### Supabase
 
