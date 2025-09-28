@@ -20,7 +20,6 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 		mutationFn: async (updatedFields: {
 			title?: string;
 			markdown?: string;
-			space_id?: string | null;
 		}) => {
 			if (!item) return;
 
