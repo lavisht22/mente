@@ -2,16 +2,21 @@ import type { Tables } from "@/lib/supabase.types";
 import { Card, CardBody } from "@heroui/react";
 import { Link } from "@tanstack/react-router";
 
-export default function Item({ id, title, type }: Tables<"items">) {
+export default function Item({ id, title, type, markdown }: Tables<"items">) {
 	if (type === "note") {
 		return (
 			<Card
 				as={Link}
 				to={`/items/${id}`}
 				isPressable
-				className="w-36 h-36 bg-yellow-50"
+				className="w-44 h-48 bg-yellow-50"
 			>
-				<CardBody>{title}</CardBody>
+				<CardBody className="hover:bg-default/20 flex flex-col gap-2">
+					<p className="text-sm text-default-500 font-medium line-clamp-1">
+						{title}
+					</p>
+					<p className="text-xs text-default-500 line-clamp-5">{markdown}</p>
+				</CardBody>
 			</Card>
 		);
 	}
