@@ -23,7 +23,7 @@ function RouteComponent() {
 	return (
 		<div className="flex">
 			<Sidebar />
-			<main className="flex-1 overflow-y-auto">
+			<main className="flex-1 overflow-y-auto bg-default-50">
 				<Outlet />
 			</main>
 		</div>

@@ -16,7 +16,7 @@ export default function Sidebar() {
 	return (
 		<motion.div
 			layout
-			className="relative flex h-screen flex-col"
+			className="relative flex h-screen flex-col border-r border-default-200 bg-background"
 			initial={{ width: 256 }}
 			animate={{ width: isCollapsed ? 64 : 256 }}
 			transition={{ duration: 0.3 }}
