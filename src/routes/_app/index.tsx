@@ -1,27 +1,13 @@
-import supabase from "@/lib/supabase";
-import { Button } from "@heroui/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
-import logo from "../logo.svg";
+import logo from "../../logo.svg";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_app/")({
 	component: App,
 });
 
 function App() {
-	useEffect(() => {
-		const fetchUser = async () => {
-			const { data } = await supabase.auth.getUser();
-
-			console.log("User:", data.user);
-		};
-
-		fetchUser();
-	}, []);
-
 	return (
 		<div className="text-center">
-			<Button color="primary">HeroUI!</Button>
 			<header className="min-h-screen flex flex-col items-center justify-center bg-[#282c34] text-white text-[calc(10px+2vmin)]">
 				<img
 					src={logo}

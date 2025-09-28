@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 
 import supabase from "@/lib/supabase";
 
-export const Route = createFileRoute("/auth/")({
+export const Route = createFileRoute("/auth")({
 	component: RouteComponent,
 });
 
@@ -19,7 +19,7 @@ function RouteComponent() {
 			const { error } = await supabase.auth.signInWithOtp({ email });
 
 			if (error) {
-				throw error;
+				throw error
 			}
 
 			setMagicLinkSent(true);
@@ -28,7 +28,7 @@ function RouteComponent() {
 				title: "Error",
 				description: "Failed to send magic link. Please try again.",
 				color: "danger",
-			});
+			})
 		} finally {
 			setLoading(false);
 		}
@@ -45,7 +45,7 @@ function RouteComponent() {
 					</p>
 				</div>
 			</div>
-		);
+		)
 	}
 
 	return (
@@ -68,5 +68,5 @@ function RouteComponent() {
 				</Button>
 			</div>
 		</div>
-	);
+	)
 }
