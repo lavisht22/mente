@@ -85,7 +85,7 @@ src/
 ├── styles.css              # Global styles
 ├── routeTree.gen.ts        # Auto-generated routes
 ├── components/             # Reusable components
-│   └── Header.tsx
+│   └── header.tsx
 ├── routes/                 # Page components
 │   ├── __root.tsx         # Root layout
 │   └── index.tsx          # Home page
@@ -97,10 +97,8 @@ src/
 
 ### File Naming Conventions
 
-- **Components** - PascalCase (e.g., `UserProfile.tsx`)
-- **Hooks** - camelCase with `use` prefix (e.g., `useUserData.ts`)
-- **Utilities** - camelCase (e.g., `formatDate.ts`)
-- **Types** - PascalCase with `.types.ts` suffix (e.g., `User.types.ts`)
+Always use kebab-case for file names:
+e.g: `note-editor.tsx`, `user-profile.tsx`
 
 ## Supabase Integration
 

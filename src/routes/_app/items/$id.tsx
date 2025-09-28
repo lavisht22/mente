@@ -7,7 +7,12 @@ import {
 	ModalHeader,
 	Textarea,
 } from "@heroui/react";
-import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
@@ -36,10 +41,10 @@ const itemQuery = (id: string) =>
 
 function RouteComponent() {
 	const { id } = Route.useParams();
-	const { queryClient } = Route.useRouteContext();
 
 	const { history } = useRouter();
 	const { data: item } = useQuery(itemQuery(id));
+	const queryClient = useQueryClient();
 
 	const [title, setTitle] = useState(item?.title ?? "");
 	const [markdown, setMarkdown] = useState(item?.markdown ?? "");
