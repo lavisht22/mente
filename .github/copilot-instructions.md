@@ -46,6 +46,8 @@ Mente is a second brain AI application designed to help users organize, connect,
   - Use `Modal` instead of custom overlays
   - Use `Card` instead of custom containers
   - Use `Avatar`, `Badge`, `Chip`, etc. for UI elements
+- Use onPress instead of onClick for Buttons
+- use onValueChange instead of onChange for Inputs
 
 ### Styling Guidelines
 
