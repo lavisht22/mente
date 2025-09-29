@@ -14,7 +14,7 @@ export default function RecentItems() {
 	}
 
 	return (
-		<div className="flex gap-4">
+		<div className="flex gap-4 w-full overflow-x-auto px-8 py-8 -mt-8 scrollbar-hide">
 			{data?.map((item) => (
 				<Item key={item.id} {...item} />
 			))}

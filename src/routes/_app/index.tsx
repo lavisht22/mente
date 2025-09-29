@@ -10,8 +10,8 @@ export const Route = createFileRoute("/_app/")({
 
 function RouteComponent() {
 	return (
-		<div className="p-8 space-y-8">
-			<div className="flex items-center gap-4">
+		<div>
+			<div className="flex items-center gap-4 p-8">
 				<div className="flex-1">
 					<h1 className="text-2xl font-bold">Greeting!</h1>
 				</div>
@@ -27,7 +27,12 @@ function RouteComponent() {
 			</div>
 
 			<div className="space-y-4">
-				<h3 className="text-lg font-medium">Recent Items</h3>
+				<h3 className="text-lg font-medium ml-8">Recent Items</h3>
+				<RecentItems />
+			</div>
+
+			<div className="space-y-4">
+				<h3 className="text-lg font-medium ml-8">Recent Spaces</h3>
 				<RecentItems />
 			</div>
 		</div>

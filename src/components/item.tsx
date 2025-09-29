@@ -9,7 +9,8 @@ export default function Item({ id, title, type, markdown }: Tables<"items">) {
 				as={Link}
 				to={`/items/${id}`}
 				isPressable
-				className="w-44 h-48 bg-yellow-50"
+				className="w-44 shrink-0 aspect-[5/6] bg-yellow-50"
+				shadow="sm"
 			>
 				<CardBody className="hover:bg-default/20 flex flex-col gap-2">
 					<p className="text-sm text-default-500 font-medium line-clamp-1">
