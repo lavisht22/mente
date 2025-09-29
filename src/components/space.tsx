@@ -6,7 +6,7 @@ export default function Item({ id, name }: Tables<"spaces">) {
 	return (
 		<Card
 			as={Link}
-			to={`/items/${id}`}
+			to={`/spaces/${id}`}
 			isPressable
 			className="w-[180px] h-[216px] shrink-0"
 			shadow="sm"
