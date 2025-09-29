@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/frame.css";
+import "@/milkdown-theme.css";
 
 export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 	const [title, setTitle] = useState(item?.title ?? "");
@@ -27,7 +28,7 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 		}
 	}, [item]);
 
-	const { mutate: updateItem, isPending: isSaving } = useMutation({
+	const { mutate: updateItem } = useMutation({
 		mutationFn: async (updatedFields: {
 			title?: string;
 			markdown?: string;
@@ -60,7 +61,7 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 
 			const crepe = new Crepe({
 				root: editorRef.current,
-				defaultValue: item.markdown || "Start writing your markdown...",
+				defaultValue: item.markdown || "",
 				features: {
 					[Crepe.Feature.CodeMirror]: true,
 					[Crepe.Feature.ListItem]: true,
@@ -119,17 +120,14 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 	}, [title, markdown, item, updateItem]);
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-4 max-w-3xl mx-auto">
 			<Input
 				className="text-lg font-semibold"
 				value={title}
 				onValueChange={setTitle}
 				placeholder="Title"
 			/>
-			<div ref={editorRef} className="min-h-[400px] w-full" />
-			<div className="text-sm text-gray-500">
-				{isSaving ? "Saving..." : "All changes saved."}
-			</div>
+			<div ref={editorRef} className="w-full" />
 		</div>
 	);
 }
