@@ -55,7 +55,12 @@ export default function NewSpaceModal({
 	});
 
 	return (
-		<Modal isOpen={isOpen} onOpenChange={onOpenChange} hideCloseButton>
+		<Modal
+			isOpen={isOpen}
+			onOpenChange={onOpenChange}
+			hideCloseButton
+			backdrop="blur"
+		>
 			<ModalContent>
 				<ModalHeader>Create New Space</ModalHeader>
 				<ModalBody>
