@@ -3,6 +3,7 @@ import { Button } from "@heroui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { LucidePlus } from "lucide-react";
 import RecentItems from "./-components/recent-items";
+import RecentSpaces from "./-components/recent-spaces";
 
 export const Route = createFileRoute("/_app/")({
 	component: RouteComponent,
@@ -33,7 +34,7 @@ function RouteComponent() {
 
 			<div className="space-y-4">
 				<h3 className="text-lg font-medium ml-8">Recent Spaces</h3>
-				<RecentItems />
+				<RecentSpaces />
 			</div>
 		</div>
 	);
