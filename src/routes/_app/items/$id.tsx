@@ -57,6 +57,7 @@ function RouteComponent() {
 			isOpen
 			onOpenChange={() => history.go(-1)}
 			hideCloseButton
+			scrollBehavior="inside"
 		>
 			<ModalContent>
 				<ModalHeader className="flex justify-between items-center gap-4">

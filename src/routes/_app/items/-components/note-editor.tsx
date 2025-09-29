@@ -1,18 +1,29 @@
 import supabase from "@/lib/supabase";
 import type { Tables } from "@/lib/supabase.types";
-import { Input, Textarea } from "@heroui/react";
+import { Input } from "@heroui/react";
+import { Crepe } from "@milkdown/crepe";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import "@milkdown/crepe/theme/common/style.css";
+import "@milkdown/crepe/theme/frame.css";
 
 export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 	const [title, setTitle] = useState(item?.title ?? "");
 	const [markdown, setMarkdown] = useState(item?.markdown ?? "");
+	const editorRef = useRef<HTMLDivElement>(null);
+	const crepeRef = useRef<Crepe | null>(null);
+	const isUpdatingFromEditor = useRef(false);
+	const currentItemId = useRef<string | null>(null);
 	const queryClient = useQueryClient();
 
 	useEffect(() => {
 		if (item) {
 			setTitle(item.title ?? "");
-			setMarkdown(item.markdown ?? "");
+
+			// Only update markdown if it's not coming from the editor itself
+			if (!isUpdatingFromEditor.current) {
+				setMarkdown(item.markdown ?? "");
+			}
 		}
 	}, [item]);
 
@@ -31,10 +42,68 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 			if (error) throw error;
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["item", item.id] });
+			// Don't invalidate the specific item query to prevent re-render
 			queryClient.invalidateQueries({ queryKey: ["items"] });
 		},
 	});
+
+	useEffect(() => {
+		if (!editorRef.current || !item) return;
+
+		// Only re-initialize if the item ID has changed
+		if (currentItemId.current === item.id && crepeRef.current) {
+			return;
+		}
+
+		const initEditor = async () => {
+			console.log("Initializing Crepe editor for item:", item.id);
+
+			const crepe = new Crepe({
+				root: editorRef.current,
+				defaultValue: item.markdown || "Start writing your markdown...",
+				features: {
+					[Crepe.Feature.CodeMirror]: true,
+					[Crepe.Feature.ListItem]: true,
+					[Crepe.Feature.LinkTooltip]: true,
+					[Crepe.Feature.ImageBlock]: true,
+					[Crepe.Feature.BlockEdit]: true,
+					[Crepe.Feature.Table]: true,
+					[Crepe.Feature.Toolbar]: true,
+					[Crepe.Feature.Cursor]: true,
+					[Crepe.Feature.Placeholder]: true,
+				},
+			});
+
+			crepeRef.current = crepe;
+			currentItemId.current = item.id;
+
+			await crepe.create();
+
+			// Set up event listeners
+			crepe.on((listener) => {
+				listener.markdownUpdated((_ctx, newMarkdown: string) => {
+					isUpdatingFromEditor.current = true;
+					setMarkdown(newMarkdown);
+					setTimeout(() => {
+						isUpdatingFromEditor.current = false;
+					}, 100);
+				});
+			});
+		};
+
+		initEditor();
+
+		return () => {
+			if (crepeRef.current) {
+				crepeRef.current.destroy();
+				crepeRef.current = null;
+			}
+
+			if (editorRef.current) {
+				editorRef.current.innerHTML = "";
+			}
+		};
+	}, [item]);
 
 	useEffect(() => {
 		const handler = setTimeout(() => {
@@ -57,12 +126,10 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 				onValueChange={setTitle}
 				placeholder="Title"
 			/>
-			<Textarea
-				value={markdown}
-				onValueChange={setMarkdown}
-				placeholder="Start writing..."
-			/>
-			<div>{isSaving ? "Saving..." : "All changes saved."}</div>
+			<div ref={editorRef} className="min-h-[400px] w-full" />
+			<div className="text-sm text-gray-500">
+				{isSaving ? "Saving..." : "All changes saved."}
+			</div>
 		</div>
 	);
 }
