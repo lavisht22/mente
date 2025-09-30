@@ -785,16 +785,94 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 
 
 RESET ALL;
-drop trigger if exists "objects_delete_delete_prefix" on "storage"."objects";
 
-drop trigger if exists "objects_update_create_prefix" on "storage"."objects";
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM   pg_trigger
+        WHERE  tgname = 'enforce_bucket_name_length_trigger'
+    ) THEN
+        CREATE TRIGGER enforce_bucket_name_length_trigger
+        BEFORE INSERT OR UPDATE OF name ON storage.buckets
+        FOR EACH ROW EXECUTE FUNCTION storage.enforce_bucket_name_length();
+    END IF;
+END;
+$$;
 
-drop trigger if exists "prefixes_delete_hierarchy" on "storage"."prefixes";
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM   pg_trigger
+        WHERE  tgname = 'objects_delete_cleanup'
+    ) THEN
+        CREATE TRIGGER objects_delete_cleanup
+        AFTER DELETE ON storage.objects
+        REFERENCING OLD TABLE AS deleted
+        FOR EACH STATEMENT EXECUTE FUNCTION storage.objects_delete_cleanup();
+    END IF;
+END;
+$$;
 
-CREATE TRIGGER objects_delete_cleanup AFTER DELETE ON storage.objects REFERENCING OLD TABLE AS deleted FOR EACH STATEMENT EXECUTE FUNCTION storage.objects_delete_cleanup();
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM   pg_trigger
+        WHERE  tgname = 'objects_insert_create_prefix'
+    ) THEN
+        CREATE TRIGGER objects_insert_create_prefix
+        BEFORE INSERT ON storage.objects
+        FOR EACH ROW EXECUTE FUNCTION storage.objects_insert_prefix_trigger();
+    END IF;
+END;
+$$;
 
-CREATE TRIGGER objects_update_cleanup AFTER UPDATE ON storage.objects REFERENCING OLD TABLE AS old_rows NEW TABLE AS new_rows FOR EACH STATEMENT EXECUTE FUNCTION storage.objects_update_cleanup();
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM   pg_trigger
+        WHERE  tgname = 'objects_update_cleanup'
+    ) THEN
+        CREATE TRIGGER objects_update_cleanup
+        AFTER UPDATE ON storage.objects
+        REFERENCING OLD TABLE AS old_rows NEW TABLE AS new_rows
+        FOR EACH STATEMENT EXECUTE FUNCTION storage.objects_update_cleanup();
+    END IF;
+END;
+$$;
 
-CREATE TRIGGER prefixes_delete_cleanup AFTER DELETE ON storage.prefixes REFERENCING OLD TABLE AS deleted FOR EACH STATEMENT EXECUTE FUNCTION storage.prefixes_delete_cleanup();
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM   pg_trigger
+        WHERE  tgname = 'prefixes_create_hierarchy'
+    ) THEN
+        CREATE TRIGGER prefixes_create_hierarchy
+        BEFORE INSERT ON storage.prefixes
+        FOR EACH ROW
+        WHEN (pg_trigger_depth() < 1)
+        EXECUTE FUNCTION storage.prefixes_insert_trigger();
+    END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM   pg_trigger
+        WHERE  tgname = 'prefixes_delete_cleanup'
+    ) THEN
+        CREATE TRIGGER prefixes_delete_cleanup
+        AFTER DELETE ON storage.prefixes
+        REFERENCING OLD TABLE AS deleted
+        FOR EACH STATEMENT EXECUTE FUNCTION storage.prefixes_delete_cleanup();
+    END IF;
+END;
+$$;
 
 
