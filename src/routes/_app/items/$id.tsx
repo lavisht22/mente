@@ -1,19 +1,11 @@
-import {
-	Button,
-	Modal,
-	ModalBody,
-	ModalContent,
-	ModalHeader,
-	Select,
-	SelectItem,
-} from "@heroui/react";
+import { Button, Select, SelectItem } from "@heroui/react";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { spacesQuery } from "@/lib/queries";
 import supabase from "@/lib/supabase";
-import { LucideEllipsisVertical, LucideX } from "lucide-react";
+import { LucideEllipsisVertical } from "lucide-react";
 import NoteEditor from "./-components/note-editor";
 
 export const Route = createFileRoute("/_app/items/$id")({
