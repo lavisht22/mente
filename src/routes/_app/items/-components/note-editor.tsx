@@ -1,6 +1,5 @@
 import supabase from "@/lib/supabase";
 import type { Tables } from "@/lib/supabase.types";
-import { Input } from "@heroui/react";
 import { Crepe } from "@milkdown/crepe";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -12,6 +11,7 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 	const [title, setTitle] = useState(item?.title ?? "");
 	const [markdown, setMarkdown] = useState(item?.markdown ?? "");
 	const editorRef = useRef<HTMLDivElement>(null);
+	const titleRef = useRef<HTMLHeadingElement>(null);
 	const crepeRef = useRef<Crepe | null>(null);
 	const isUpdatingFromEditor = useRef(false);
 	const currentItemId = useRef<string | null>(null);
@@ -19,7 +19,9 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 
 	useEffect(() => {
 		if (item) {
-			setTitle(item.title ?? "");
+			if (titleRef.current && document.activeElement !== titleRef.current) {
+				setTitle(item.title ?? "");
+			}
 
 			// Only update markdown if it's not coming from the editor itself
 			if (!isUpdatingFromEditor.current) {
@@ -119,13 +121,33 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 		};
 	}, [title, markdown, item, updateItem]);
 
+	useEffect(() => {
+		if (titleRef.current && titleRef.current.textContent !== title) {
+			titleRef.current.textContent = title;
+		}
+	}, [title]);
+
+	const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLHeadingElement>) => {
+		if (e.key === "Enter" || e.key === "ArrowDown") {
+			e.preventDefault();
+			const editorElement = editorRef.current?.querySelector(
+				".milkdown-editor",
+			) as HTMLElement | null;
+			editorElement?.focus();
+		}
+	};
+
 	return (
 		<div className="space-y-4 max-w-3xl mx-auto">
-			<Input
-				className="text-lg font-semibold"
-				value={title}
-				onValueChange={setTitle}
-				placeholder="Title"
+			<h1
+				ref={titleRef}
+				contentEditable
+				suppressContentEditableWarning
+				onInput={(e) => setTitle(e.currentTarget.textContent ?? "")}
+				onKeyDown={handleTitleKeyDown}
+				className="text-[42px] font-bold outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+				data-placeholder="Title"
+				aria-label="Note title"
 			/>
 			<div ref={editorRef} className="w-full" />
 		</div>
