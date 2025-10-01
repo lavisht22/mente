@@ -11,7 +11,7 @@
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",
-    "supabase:types": "supabase gen types typescript --local --schema public > src/lib/supabase.types.ts"
+    "types": "supabase gen types typescript --local --schema public > db.types.ts"
   },
   "dependencies": {
     "@heroui/react": "^2.8.4",
