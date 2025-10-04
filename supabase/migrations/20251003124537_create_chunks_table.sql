@@ -3,7 +3,7 @@ create table "public"."chunks" (
     "item_id" uuid,
     "created_at" timestamp with time zone not null default now(),
     "content" text not null,
-    "embedding" halfvec(1024)
+    "embedding" extensions.halfvec(1024)
 );
 
 
@@ -11,7 +11,7 @@ alter table "public"."chunks" enable row level security;
 
 alter table "public"."items" add column "is_embed_pending" boolean not null default false;
 
-CREATE INDEX chunks_embedding_idx ON public.chunks USING hnsw (embedding halfvec_cosine_ops);
+CREATE INDEX chunks_embedding_idx ON public.chunks USING hnsw (embedding extensions.halfvec_cosine_ops);
 
 CREATE UNIQUE INDEX embeddings_pkey ON public.chunks USING btree (id);
 

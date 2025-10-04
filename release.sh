@@ -9,6 +9,7 @@ if ! git diff-index --quiet HEAD --; then
     exit 1
 fi
 
+
 # 2. Check for version argument
 if [ -z "$1" ]; then
     echo "Usage: $0 <major|minor|patch>"
@@ -17,17 +18,17 @@ fi
 
 VERSION_TYPE=$1
 
-# 3. Update package version
-echo "Updating package version..."
-npm version $VERSION_TYPE
-
-# 4. Release backend
+# 3. Release backend
 echo "Releasing backend..."
 npx supabase db push
 
-# 5. Deploy Trigger
+# 4. Deploy Trigger
 echo "Deploying Trigger..."
 npx trigger.dev@latest deploy
+
+# 5. Update package version
+echo "Updating package version..."
+npm version $VERSION_TYPE
 
 # 6. Push changes
 echo "Pushing changes to Git..."
