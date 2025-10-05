@@ -1,5 +1,5 @@
 import { Button, Card } from "@heroui/react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { LucideMessageSquareShare, LucideMinimize2 } from "lucide-react";
 import Chat from "./chat";
 
@@ -51,7 +51,9 @@ export default function FloatingChat({
             <LucideMinimize2 className="size-5" />
           </Button>
         </div>
-        <Chat chatId="e7423fcf-454e-48e6-ab57-ec1348f878b0" />
+        <div className="h-full overflow-y-auto w-full overflow-x-hidden">
+          <Chat chatId="e7423fcf-454e-48e6-ab57-ec1348f878b0" />
+        </div>
       </Card>
     </motion.div>
   );
