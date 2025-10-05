@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_app")({
 
 function RouteComponent() {
   return (
-    <div className="relative flex h-screen bg-default-50">
+    <div className="relative flex h-screen">
       <div className="relative z-10 p-4">
         <Nav />
       </div>
