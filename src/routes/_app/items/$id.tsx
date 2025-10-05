@@ -7,9 +7,16 @@ import {
   Select,
   SelectItem,
 } from "@heroui/react";
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+
+import ConfirmationDialog from "@/components/confirmation-dialog";
 
 import { spacesQuery } from "@/lib/queries";
 import supabase from "@/lib/supabase";
@@ -43,11 +50,25 @@ const itemQuery = (id: string) =>
 function RouteComponent() {
   const { id } = Route.useParams();
 
-  const { history } = useRouter();
+  const { history, navigate } = useRouter();
+  const queryClient = useQueryClient();
   const { data: item } = useQuery(itemQuery(id));
   const { data: spaces } = useQuery(spacesQuery);
 
   const [spaceId, setSpaceId] = useState<string | null>(item?.space_id ?? null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("items").delete().eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["items"] });
+      navigate({ to: "/" });
+    },
+  });
 
   useEffect(() => {
     if (item) {
@@ -90,6 +111,7 @@ function RouteComponent() {
                 key="delete"
                 startContent={<LucideTrash className="size-4" />}
                 color="danger"
+                onPress={() => setIsDeleteDialogOpen(true)}
               >
                 Delete
               </DropdownItem>
@@ -100,6 +122,17 @@ function RouteComponent() {
       <div className="p-8">
         {item?.type === "note" && <NoteEditor item={item} />}
       </div>
+
+      <ConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={() => deleteMutation.mutate()}
+        title="Delete Item"
+        description="Are you sure you want to delete this item? This action cannot be undone."
+        confirmLabel="Delete"
+        confirmColor="danger"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }
