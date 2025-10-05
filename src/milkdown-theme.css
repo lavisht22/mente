@@ -1,8 +1,12 @@
 /* src/milkdown-theme.css */
 .milkdown {
-	--crepe-color-background: transparent;
+  --crepe-color-background: transparent;
 
-	.ProseMirror {
-		padding: 0px;
-	}
+  --crepe-font-title: var(--font-sans);
+  --crepe-font-text: var(--font-sans);
+  --crepe-font-mono: var(--font-mono);
+
+  .ProseMirror {
+    padding: 0px;
+  }
 }

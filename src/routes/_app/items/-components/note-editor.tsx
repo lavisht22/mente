@@ -3,6 +3,7 @@ import { Crepe } from "@milkdown/crepe";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Tables } from "db.types";
 import { useEffect, useRef, useState } from "react";
+
 import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/frame.css";
 import "@/milkdown-theme.css";
@@ -149,7 +150,7 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
         suppressContentEditableWarning
         onInput={(e) => setTitle(e.currentTarget.textContent ?? "")}
         onKeyDown={handleTitleKeyDown}
-        className="text-[42px] font-bold outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+        className="text-[44px] font-bold outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
         data-placeholder="Title"
         aria-label="Note title"
       />
