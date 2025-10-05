@@ -1,20 +1,23 @@
 import { Button, Card } from "@heroui/react";
+import { AnimatePresence, motion } from "framer-motion";
 import { LucideMessageSquareShare, LucideMinimize2 } from "lucide-react";
-import { useState } from "react";
 import Chat from "./chat";
 
-export default function FloatingChat() {
-  const [collapsed, setCollapsed] = useState(false);
+interface FloatingChatProps {
+  isOpen: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+}
 
-  if (collapsed) {
+export default function FloatingChat({
+  isOpen,
+  onOpen,
+  onClose,
+}: FloatingChatProps) {
+  if (!isOpen) {
     return (
       <div className="fixed bottom-6 right-6 z-30">
-        <Button
-          radius="full"
-          isIconOnly
-          size="lg"
-          onPress={() => setCollapsed(false)}
-        >
+        <Button radius="full" isIconOnly size="lg" onPress={onOpen}>
           <LucideMessageSquareShare className="size-5" />
         </Button>
       </div>
@@ -22,16 +25,34 @@ export default function FloatingChat() {
   }
 
   return (
-    <div className="h-full p-4 pl-0 sticky top-0 z-20 w-full max-w-md 2xl:max-w-lg">
+    <motion.div
+      initial={{
+        opacity: 0,
+        y: 100,
+      }}
+      animate={{
+        opacity: 1,
+        y: 0,
+      }}
+      exit={{
+        opacity: 0,
+        y: 100,
+      }}
+      transition={{
+        duration: 0.5,
+        type: "spring",
+      }}
+      className="h-full p-4 pl-0 sticky top-0 z-20 w-full max-w-md 2xl:max-w-lg"
+    >
       <Card className="h-full overflow-hidden">
         <div className="p-2 flex justify-between items-center border-b border-default-200">
           <div />
-          <Button isIconOnly variant="light" onPress={() => setCollapsed(true)}>
+          <Button isIconOnly variant="light" onPress={onClose}>
             <LucideMinimize2 className="size-5" />
           </Button>
         </div>
         <Chat chatId="e7423fcf-454e-48e6-ab57-ec1348f878b0" />
       </Card>
-    </div>
+    </motion.div>
   );
 }

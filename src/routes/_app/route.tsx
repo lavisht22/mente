@@ -1,4 +1,6 @@
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
 import FloatingChat from "@/components/floating-chat";
 import Nav from "@/components/nav";
@@ -21,17 +23,32 @@ export const Route = createFileRoute("/_app")({
 });
 
 function RouteComponent() {
+  const [isChatOpen, setIsChatOpen] = useState(true);
+
   return (
     <div className="relative flex h-screen">
       <div className="z-10 p-4">
         <Nav />
       </div>
       <main className="flex-1 h-screen flex overflow-y-auto">
-        <div className="flex-1">
+        <motion.div
+          layout
+          className="flex-1"
+          transition={{
+            duration: 0.5,
+            type: "spring",
+          }}
+        >
           <Outlet />
-        </div>
+        </motion.div>
 
-        <FloatingChat />
+        <AnimatePresence>
+          <FloatingChat
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+            onOpen={() => setIsChatOpen(true)}
+          />
+        </AnimatePresence>
       </main>
     </div>
   );
