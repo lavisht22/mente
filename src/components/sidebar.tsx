@@ -1,108 +1,55 @@
-import { Button, cn } from "@heroui/react";
+import { Button, Card } from "@heroui/react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronsLeft, LucideHome, LucideUser2 } from "lucide-react";
-import { useState } from "react";
+import { LucideHome, LucideLayers, LucideUser2 } from "lucide-react";
+
+const LINKS = [
+  {
+    to: "/",
+    icon: <LucideHome className="size-5 shrink-0" />,
+  },
+  {
+    to: "/spaces",
+    icon: <LucideLayers className="size-5 shrink-0" />,
+  },
+  {
+    to: "/profile",
+    icon: <LucideUser2 className="size-5 shrink-0" />,
+  },
+];
 
 export default function Sidebar() {
   const location = useLocation();
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
-  };
-
   return (
-    <motion.div
-      layout
-      className="relative flex h-screen flex-col border-r border-default-200 bg-background"
-      initial={{ width: 256 }}
-      animate={{ width: isCollapsed ? 64 : 256 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="p-2 flex justify-end items-center border-b border-default-200">
-        <AnimatePresence>
-          {!isCollapsed && (
-            <motion.h1
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex-1 ml-2 text-lg font-semibold"
-            >
-              mente
-            </motion.h1>
-          )}
-        </AnimatePresence>
-        <Button
-          variant="light"
-          size="lg"
-          isIconOnly
-          type="button"
-          onPress={toggleCollapse}
-          disableRipple
-        >
-          <ChevronsLeft
-            className={cn("size-5 transform transition-transform", {
-              "rotate-180": isCollapsed,
-            })}
-          />
-        </Button>
+    <Card className="relative flex h-[calc(100vh - 2rem)] flex-col rounded-full">
+      <div className="p-2 flex justify-center items-center border-b border-default-200">
+        <div className="p-4">
+          <div className="size-4 bg-black rounded-full" />
+        </div>
       </div>
 
       <div className="flex-1">
         <nav className="p-2">
           <ul>
-            <li>
-              <Button
-                as={Link}
-                to="/"
-                size="lg"
-                variant="light"
-                isIconOnly={isCollapsed}
-                fullWidth
-                className={cn(
-                  "px-3 justify-start",
-                  location.pathname === "/" ? "text-primary" : "",
-                )}
-              >
-                <LucideHome className="size-5 shrink-0" />
-                {!isCollapsed && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  >
-                    Home
-                  </motion.span>
-                )}
-              </Button>
-            </li>
+            {LINKS.map((link) => (
+              <li key={link.to} className="mb-2 last:mb-0">
+                <Button
+                  radius="full"
+                  as={Link}
+                  to={link.to}
+                  size="lg"
+                  variant="light"
+                  color={location.pathname === link.to ? "primary" : "default"}
+                  isIconOnly
+                  fullWidth
+                >
+                  {link.icon}
+                </Button>
+              </li>
+            ))}
           </ul>
         </nav>
       </div>
-      <div className="p-2 border-t border-default-200">
-        <Button
-          as={Link}
-          to="/profile"
-          size="lg"
-          variant="light"
-          isIconOnly={isCollapsed}
-          className="px-3 justify-start"
-          fullWidth
-        >
-          <LucideUser2 className="size-5 shrink-0" />
-          {!isCollapsed && (
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              Profile
-            </motion.span>
-          )}
-        </Button>
-      </div>
-    </motion.div>
+    </Card>
   );
 }

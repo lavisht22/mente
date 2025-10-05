@@ -21,9 +21,11 @@ export const Route = createFileRoute("/_app")({
 
 function RouteComponent() {
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <main className="flex-1 h-screen overflow-y-auto bg-default-50">
+    <div className="relative flex h-screen bg-default-50">
+      <div className="relative z-10 p-4">
+        <Sidebar />
+      </div>
+      <main className="flex-1 h-screen overflow-y-auto">
         <Outlet />
       </main>
     </div>
