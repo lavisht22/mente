@@ -17,7 +17,7 @@ const LINKS = [
   },
 ];
 
-export default function Sidebar() {
+export default function Nav() {
   const location = useLocation();
 
   return (

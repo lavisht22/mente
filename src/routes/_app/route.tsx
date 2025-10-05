@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
-import Sidebar from "@/components/sidebar";
+import Nav from "@/components/nav";
 import supabase from "@/lib/supabase";
 
 export const Route = createFileRoute("/_app")({
@@ -23,7 +23,7 @@ function RouteComponent() {
   return (
     <div className="relative flex h-screen bg-default-50">
       <div className="relative z-10 p-4">
-        <Sidebar />
+        <Nav />
       </div>
       <main className="flex-1 h-screen overflow-y-auto">
         <Outlet />
