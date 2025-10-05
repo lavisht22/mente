@@ -4,6 +4,9 @@
     "**/*.tsx",
     "trigger.config.ts"
   ],
+  "exclude": [
+    "supabase/*"
+  ],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",
