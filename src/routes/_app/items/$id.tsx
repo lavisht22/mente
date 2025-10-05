@@ -142,7 +142,10 @@ function RouteComponent() {
 
   return (
     <div>
-      <div id="header" className="p-4 flex justify-between items-center gap-4">
+      <div
+        id="header"
+        className="p-4 flex justify-between items-center gap-4 sticky top-0 bg-default-50 z-10"
+      >
         <div>
           <Button isIconOnly variant="light" onPress={() => history.go(-1)}>
             <LucideArrowLeft className="size-4" />
