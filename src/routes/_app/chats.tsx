@@ -8,7 +8,7 @@ export const Route = createFileRoute("/_app/chats")({
 function RouteComponent() {
   return (
     <div className="p-16">
-      <Chat chatId="b284477c-544e-43d5-bbca-b2abebe08cf7" />
+      <Chat />
     </div>
   );
 }

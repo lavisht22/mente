@@ -64,7 +64,7 @@ export default function Chat({ chatId }: ChatProps) {
               message.data.role === "user" ? "text-right" : "text-left"
             }`}
           >
-            {JSON.stringify(message.data.content)}
+            {JSON.stringify(message.data)}
           </div>
         ))}
       </div>

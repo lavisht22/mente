@@ -1,4 +1,9 @@
 {
   "imports": {
+    "@supabase/functions-js/edge-runtime.d.ts": "jsr:@supabase/functions-js/edge-runtime.d.ts",
+    "@supabase/supabase-js": "jsr:@supabase/supabase-js@2",
+    "ai": "https://esm.sh/ai@5.0.60",
+    "@ai-sdk/openai": "https://esm.sh/@ai-sdk/openai@2.0.42",
+    "db.types": "../../../db.types.ts"
   }
 }

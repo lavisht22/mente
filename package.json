@@ -28,6 +28,7 @@
     "@tanstack/router-plugin": "^1.132.0",
     "@trigger.dev/sdk": "^4.0.4",
     "ai": "^5.0.60",
+    "fetch-event-stream": "^0.1.5",
     "framer-motion": "^12.23.22",
     "lucide-react": "^0.544.0",
     "react": "^19.0.0",
