@@ -23,14 +23,14 @@ export default function Sidebar() {
   return (
     <Card className="relative flex h-[calc(100vh - 2rem)] flex-col rounded-full">
       <div className="p-2 flex justify-center items-center border-b border-default-200">
-        <div className="p-4">
-          <div className="size-4 bg-black rounded-full" />
+        <div className="p-3">
+          <div className="size-5 bg-black rounded-full" />
         </div>
       </div>
 
       <div className="flex-1">
         <nav className="p-2">
-          <ul>
+          <ul className="flex flex-col items-center">
             {LINKS.map((link) => (
               <li key={link.to} className="mb-2 last:mb-0">
                 <Button
