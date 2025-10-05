@@ -21,6 +21,7 @@ VERSION_TYPE=$1
 # 3. Release backend
 echo "Releasing backend..."
 npx supabase db push
+npx supabase functions deploy
 
 # 4. Deploy Trigger
 echo "Deploying Trigger..."
