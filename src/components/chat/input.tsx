@@ -219,7 +219,7 @@ export default function ChatInput({
   }, [chat, setChat, setMessages, text]);
 
   return (
-    <div className="flex items-center gap-3 p-4">
+    <div className="flex items-center gap-3 p-4 sticky bottom-0 bg-background border-t border-default-200">
       <Input
         placeholder="Type a message..."
         className="flex-1"

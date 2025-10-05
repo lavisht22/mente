@@ -144,7 +144,7 @@ function RouteComponent() {
     <div>
       <div
         id="header"
-        className="p-4 flex justify-between items-center gap-4 sticky top-0 z-10"
+        className="p-4 flex justify-between items-center gap-4 sticky top-0 z-10 bg-background"
       >
         <div>
           <Button isIconOnly variant="light" onPress={() => history.go(-1)}>
