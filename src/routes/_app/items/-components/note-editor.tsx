@@ -136,7 +136,7 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
     if (e.key === "Enter" || e.key === "ArrowDown") {
       e.preventDefault();
       const editorElement = editorRef.current?.querySelector(
-        ".milkdown-editor",
+        ".ProseMirror",
       ) as HTMLElement | null;
       editorElement?.focus();
     }
@@ -150,7 +150,7 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
         suppressContentEditableWarning
         onInput={(e) => setTitle(e.currentTarget.textContent ?? "")}
         onKeyDown={handleTitleKeyDown}
-        className="text-[44px] font-bold outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+        className="text-[42px] font-weight-[400] outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
         data-placeholder="Title"
         aria-label="Note title"
       />
