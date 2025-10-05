@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      chats: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       chunks: {
         Row: {
           content: string
@@ -78,6 +99,35 @@ export type Database = {
             columns: ["space_id"]
             isOneToOne: false
             referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          chat_id: string
+          created_at: string
+          data: Json
+          id: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          data: Json
+          id?: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          data?: Json
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
             referencedColumns: ["id"]
           },
         ]
