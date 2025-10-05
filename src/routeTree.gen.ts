@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppSpacesRouteImport } from './routes/_app/spaces'
+import { Route as AppChatsRouteImport } from './routes/_app/chats'
 import { Route as AppItemsIdRouteImport } from './routes/_app/items/$id'
 
 const AuthRoute = AuthRouteImport.update({
@@ -34,6 +35,11 @@ const AppSpacesRoute = AppSpacesRouteImport.update({
   path: '/spaces',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppChatsRoute = AppChatsRouteImport.update({
+  id: '/chats',
+  path: '/chats',
+  getParentRoute: () => AppRouteRoute,
+} as any)
 const AppItemsIdRoute = AppItemsIdRouteImport.update({
   id: '/items/$id',
   path: '/items/$id',
@@ -42,12 +48,14 @@ const AppItemsIdRoute = AppItemsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
+  '/chats': typeof AppChatsRoute
   '/spaces': typeof AppSpacesRoute
   '/': typeof AppIndexRoute
   '/items/$id': typeof AppItemsIdRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/chats': typeof AppChatsRoute
   '/spaces': typeof AppSpacesRoute
   '/': typeof AppIndexRoute
   '/items/$id': typeof AppItemsIdRoute
@@ -56,19 +64,21 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_app/chats': typeof AppChatsRoute
   '/_app/spaces': typeof AppSpacesRoute
   '/_app/': typeof AppIndexRoute
   '/_app/items/$id': typeof AppItemsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/auth' | '/spaces' | '/' | '/items/$id'
+  fullPaths: '/auth' | '/chats' | '/spaces' | '/' | '/items/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/spaces' | '/' | '/items/$id'
+  to: '/auth' | '/chats' | '/spaces' | '/' | '/items/$id'
   id:
     | '__root__'
     | '/_app'
     | '/auth'
+    | '/_app/chats'
     | '/_app/spaces'
     | '/_app/'
     | '/_app/items/$id'
@@ -109,6 +119,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSpacesRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/chats': {
+      id: '/_app/chats'
+      path: '/chats'
+      fullPath: '/chats'
+      preLoaderRoute: typeof AppChatsRouteImport
+      parentRoute: typeof AppRouteRoute
+    }
     '/_app/items/$id': {
       id: '/_app/items/$id'
       path: '/items/$id'
@@ -120,12 +137,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteRouteChildren {
+  AppChatsRoute: typeof AppChatsRoute
   AppSpacesRoute: typeof AppSpacesRoute
   AppIndexRoute: typeof AppIndexRoute
   AppItemsIdRoute: typeof AppItemsIdRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppChatsRoute: AppChatsRoute,
   AppSpacesRoute: AppSpacesRoute,
   AppIndexRoute: AppIndexRoute,
   AppItemsIdRoute: AppItemsIdRoute,
