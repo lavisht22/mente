@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 
 import ConfirmationDialog from "@/components/confirmation-dialog";
 
+import type { Tables } from "@/../../db.types";
 import { spacesQuery } from "@/lib/queries";
 import supabase from "@/lib/supabase";
 import {
@@ -58,15 +59,72 @@ function RouteComponent() {
   const [spaceId, setSpaceId] = useState<string | null>(item?.space_id ?? null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
+  const updateSpaceMutation = useMutation({
+    mutationFn: async (newSpaceId: string | null) => {
+      const { error } = await supabase
+        .from("items")
+        .update({ space_id: newSpaceId })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onMutate: async (newSpaceId) => {
+      // Snapshot the previous value for rollback
+      const previousItem = queryClient.getQueryData<Tables<"items">>([
+        "item",
+        id,
+      ]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(
+        ["item", id],
+        (old: Tables<"items"> | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            space_id: newSpaceId,
+          };
+        },
+      );
+
+      return { previousItem };
+    },
+    onError: (_err, _newSpaceId, context) => {
+      // Rollback to previous value on error
+      if (context?.previousItem) {
+        queryClient.setQueryData(["item", id], context.previousItem);
+        setSpaceId(context.previousItem.space_id);
+      }
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("items").delete().eq("id", id);
 
       if (error) throw error;
     },
+    onMutate: async () => {
+      // Snapshot the previous value for rollback
+      const previousItem = queryClient.getQueryData<Tables<"items">>([
+        "item",
+        id,
+      ]);
+
+      // Optimistically remove from cache
+      queryClient.removeQueries({ queryKey: ["item", id] });
+
+      return { previousItem };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["items"] });
+      // Navigate away after successful deletion
       navigate({ to: "/" });
+    },
+    onError: (_err, _variables, context) => {
+      // Rollback to previous value on error
+      if (context?.previousItem) {
+        queryClient.setQueryData(["item", id], context.previousItem);
+      }
     },
   });
 
@@ -75,6 +133,12 @@ function RouteComponent() {
       setSpaceId(item.space_id ?? null);
     }
   }, [item]);
+
+  const handleSpaceChange = (keys: "all" | Set<React.Key>) => {
+    const newSpaceId = Array.from(keys)[0] as string;
+    setSpaceId(newSpaceId);
+    updateSpaceMutation.mutate(newSpaceId);
+  };
 
   return (
     <div>
@@ -92,9 +156,7 @@ function RouteComponent() {
             className="w-full max-w-40"
             placeholder="Space"
             selectedKeys={spaceId ? [spaceId] : []}
-            onSelectionChange={(keys) =>
-              setSpaceId(Array.from(keys)[0] as string)
-            }
+            onSelectionChange={handleSpaceChange}
           >
             {(spaces ?? []).map((space) => (
               <SelectItem key={space.id}>{space.name}</SelectItem>
