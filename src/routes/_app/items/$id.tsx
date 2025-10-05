@@ -1,11 +1,23 @@
-import { Button, Select, SelectItem } from "@heroui/react";
+import {
+  Button,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Select,
+  SelectItem,
+} from "@heroui/react";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { spacesQuery } from "@/lib/queries";
 import supabase from "@/lib/supabase";
-import { LucideEllipsisVertical } from "lucide-react";
+import {
+  LucideArrowLeft,
+  LucideEllipsisVertical,
+  LucideTrash,
+} from "lucide-react";
 import NoteEditor from "./-components/note-editor";
 
 export const Route = createFileRoute("/_app/items/$id")({
@@ -46,7 +58,13 @@ function RouteComponent() {
   return (
     <div>
       <div id="header" className="p-4 flex justify-between items-center gap-4">
-        <div className="flex-1">
+        <div>
+          <Button isIconOnly variant="light" onPress={() => history.go(-1)}>
+            <LucideArrowLeft className="size-4" />
+          </Button>
+        </div>
+
+        <div className="flex-1 flex justify-end items-center gap-2">
           <Select
             variant="bordered"
             color="primary"
@@ -61,12 +79,22 @@ function RouteComponent() {
               <SelectItem key={space.id}>{space.name}</SelectItem>
             ))}
           </Select>
-        </div>
-
-        <div>
-          <Button variant="light" isIconOnly onPress={() => history.go(-1)}>
-            <LucideEllipsisVertical className="size-4" />
-          </Button>
+          <Dropdown backdrop="blur">
+            <DropdownTrigger>
+              <Button variant="light" isIconOnly>
+                <LucideEllipsisVertical className="size-4" />
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu>
+              <DropdownItem
+                key="delete"
+                startContent={<LucideTrash className="size-4" />}
+                color="danger"
+              >
+                Delete
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
         </div>
       </div>
       <div className="p-8">
