@@ -1,22 +1,17 @@
 import supabase from "@/lib/supabase";
 import { addToast } from "@heroui/react";
-import type { ModelMessage, UserModelMessage } from "ai";
-import type { Json, Tables } from "db.types";
 import { useEffect, useState } from "react";
 import ChatInput from "./input";
+import type { ChatT, MessageT } from "./types";
 
 interface ChatProps {
   chatId?: string;
 }
 
-type Chat = Tables<"chats">;
-
-type Message = Tables<"messages"> & { data: ModelMessage };
-
 export default function Chat({ chatId }: ChatProps) {
   const [loading, setLoading] = useState(true);
-  const [chat, setChat] = useState<Chat | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [chat, setChat] = useState<ChatT | null>(null);
+  const [messages, setMessages] = useState<MessageT[]>([]);
 
   useEffect(() => {
     const init = async () => {
@@ -40,7 +35,7 @@ export default function Chat({ chatId }: ChatProps) {
         const { messages, ...chatWithoutMessages } = data;
 
         setChat(chatWithoutMessages);
-        setMessages(messages as Message[]);
+        setMessages(messages as MessageT[]);
       } catch {
         addToast({
           title: "Error",
@@ -54,49 +49,6 @@ export default function Chat({ chatId }: ChatProps) {
 
     init();
   }, [chatId]);
-
-  const handleSendMessage = async (content: UserModelMessage["content"]) => {
-    let currentChat = chat;
-
-    if (!chat) {
-      const { data: createdChat, error: chatCreateError } = await supabase
-        .from("chats")
-        .insert({})
-        .select()
-        .single();
-
-      if (chatCreateError) {
-        throw chatCreateError;
-      }
-
-      currentChat = createdChat;
-    }
-
-    if (!currentChat) {
-      return;
-    }
-
-    const userMessage: UserModelMessage = {
-      role: "user",
-      content,
-    };
-
-    const { data: createdMessage, error: messageCreateError } = await supabase
-      .from("messages")
-      .insert({
-        chat_id: currentChat.id,
-        data: userMessage as Json,
-      })
-      .select()
-      .single();
-
-    if (messageCreateError) {
-      throw messageCreateError;
-    }
-
-    setChat(currentChat);
-    setMessages((prevMessages) => [...prevMessages, createdMessage as Message]);
-  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -117,7 +69,12 @@ export default function Chat({ chatId }: ChatProps) {
         ))}
       </div>
 
-      <ChatInput onSendMessage={handleSendMessage} />
+      <ChatInput
+        chat={chat}
+        setChat={setChat}
+        messages={messages}
+        setMessages={setMessages}
+      />
     </div>
   );
 }
