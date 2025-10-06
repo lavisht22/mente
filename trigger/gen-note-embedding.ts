@@ -59,7 +59,9 @@ export const genNoteEmbedding = schemaTask({
       chunkOverlap: 2000,
     });
 
-    const contentChunks = await splitter.splitText(data.markdown);
+    const markdown = `# ${data.title}\n\n${data.markdown}`;
+
+    const contentChunks = await splitter.splitText(markdown);
 
     const chunks = [];
 
