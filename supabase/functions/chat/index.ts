@@ -118,6 +118,8 @@ Deno.serve(async (req) => {
           data: message as Json,
         });
       }
+
+      controller.close();
     },
     cancel() {
       // TODO: Implement cancel here properly

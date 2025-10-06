@@ -9,7 +9,7 @@ import type {
 import type { Json } from "db.types";
 import { stream } from "fetch-event-stream";
 import { LucideArrowUp } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import type { ChatT, MessageT } from "./types";
 
@@ -29,131 +29,132 @@ export default function ChatInput({
 }: ChatInputProps) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const continueChat = useCallback(async () => {
-    console.log("Continue chat");
-    if (!chat) return;
+  const continueChat = useCallback(
+    async (chat?: ChatT) => {
+      if (!chat) return;
 
-    const abort = new AbortController();
+      const abort = new AbortController();
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    const res = await stream(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
-      {
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({ chat_id: chat.id }),
-        method: "POST",
-        signal: abort.signal,
-      },
-    );
-
-    const idMap = new Map<string, string>();
-
-    for await (const chunk of res) {
-      if (!chunk.data) continue;
-
-      const parsed = JSON.parse(chunk.data) as TextStreamPart<{
-        [key: string]: Tool<unknown, unknown>;
-      }>;
-
-      if (parsed.type === "tool-call") {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            chat_id: chat.id,
-            created_at: new Date().toISOString(),
-            data: {
-              role: "assistant",
-              content: [parsed],
-            },
-          } as MessageT,
-        ]);
-      }
-
-      if (parsed.type === "tool-result") {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            chat_id: chat.id,
-            created_at: new Date().toISOString(),
-            data: {
-              role: "tool",
-              content: [parsed],
-            },
-          } as MessageT,
-        ]);
-      }
-
-      if (parsed.type === "text-start") {
-        const messageId = crypto.randomUUID();
-        idMap.set(parsed.id, messageId);
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: messageId,
-            chat_id: chat.id,
-            created_at: new Date().toISOString(),
-            data: {
-              role: "assistant",
-              content: [
-                {
-                  type: "text",
-                  text: "",
-                  providerOptions: parsed.providerMetadata,
-                },
-              ],
-            },
+      const res = await stream(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
+        {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
           },
-        ]);
-      }
+          body: JSON.stringify({ chat_id: chat.id }),
+          method: "POST",
+          signal: abort.signal,
+        },
+      );
 
-      if (parsed.type === "text-delta") {
-        console.log("Parsed chunk:", parsed);
+      const idMap = new Map<string, string>();
 
-        const messageId = idMap.get(parsed.id);
+      for await (const chunk of res) {
+        if (!chunk.data) continue;
 
-        if (!messageId) continue;
+        const parsed = JSON.parse(chunk.data) as TextStreamPart<{
+          [key: string]: Tool<unknown, unknown>;
+        }>;
 
-        setMessages((prev) =>
-          prev.map((message) => {
-            if (message.id !== messageId) {
-              return message;
-            }
-
-            const messageData = message.data as AssistantModelMessage;
-            const content = messageData.content[0];
-
-            if (typeof content === "string") return message;
-
-            if (content.type !== "text") {
-              return message;
-            }
-
-            return {
-              ...message,
+        if (parsed.type === "tool-call") {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              chat_id: chat.id,
+              created_at: new Date().toISOString(),
               data: {
-                ...messageData,
+                role: "assistant",
+                content: [parsed],
+              },
+            } as MessageT,
+          ]);
+        }
+
+        if (parsed.type === "tool-result") {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              chat_id: chat.id,
+              created_at: new Date().toISOString(),
+              data: {
+                role: "tool",
+                content: [parsed],
+              },
+            } as MessageT,
+          ]);
+        }
+
+        if (parsed.type === "text-start") {
+          const messageId = crypto.randomUUID();
+          idMap.set(parsed.id, messageId);
+
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: messageId,
+              chat_id: chat.id,
+              created_at: new Date().toISOString(),
+              data: {
+                role: "assistant",
                 content: [
                   {
-                    ...content,
-                    text: content.text + parsed.text,
+                    type: "text",
+                    text: "",
+                    providerOptions: parsed.providerMetadata,
                   },
                 ],
               },
-            };
-          }),
-        );
+            },
+          ]);
+        }
+
+        if (parsed.type === "text-delta") {
+          const messageId = idMap.get(parsed.id);
+
+          if (!messageId) continue;
+
+          setMessages((prev) =>
+            prev.map((message) => {
+              if (message.id !== messageId) {
+                return message;
+              }
+
+              const messageData = message.data as AssistantModelMessage;
+              const content = messageData.content[0];
+
+              if (typeof content === "string") return message;
+
+              if (content.type !== "text") {
+                return message;
+              }
+
+              return {
+                ...message,
+                data: {
+                  ...messageData,
+                  content: [
+                    {
+                      ...content,
+                      text: content.text + parsed.text,
+                    },
+                  ],
+                },
+              };
+            }),
+          );
+        }
       }
-    }
-  }, [chat, setMessages]);
+    },
+    [setMessages],
+  );
 
   const send = useCallback(async () => {
     try {
@@ -204,6 +205,7 @@ export default function ChatInput({
         throw messageCreateError;
       }
 
+      setText("");
       setChat(currentChat);
 
       setMessages((prevMessages) => [
@@ -211,7 +213,7 @@ export default function ChatInput({
         createdMessage as MessageT,
       ]);
 
-      await continueChat();
+      await continueChat(currentChat);
     } catch (error) {
       addToast({
         title: "Error",
@@ -221,8 +223,22 @@ export default function ChatInput({
     } finally {
       setSending(false);
       setText("");
+      // Keep focus on the textarea after sending
+      textareaRef.current?.focus();
     }
   }, [chat, setChat, setMessages, text, continueChat]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        if (text.trim() && !sending) {
+          send();
+        }
+      }
+    },
+    [text, sending, send],
+  );
 
   return (
     <div
@@ -240,12 +256,14 @@ export default function ChatInput({
       >
         <CardBody>
           <TextareaAutosize
+            ref={textareaRef}
             placeholder="Type a message..."
             className="outline-none resize-none bg-transparent"
             value={text}
             minRows={2}
             maxRows={10}
             onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
           <div className="flex justify-between items-center">
             <div />

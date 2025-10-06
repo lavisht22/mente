@@ -12,7 +12,8 @@
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",
-    "types": "supabase gen types typescript --local --schema public > db.types.ts",
+    "db:types": "supabase gen types typescript --local --schema public > db.types.ts",
+    "functions:serve": "supabase functions serve",
     "trigger:dev": "npx trigger.dev@latest dev"
   },
   "dependencies": {
