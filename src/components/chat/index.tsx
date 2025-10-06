@@ -2,6 +2,7 @@ import supabase from "@/lib/supabase";
 import { addToast, cn } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
+import Logo from "../logo";
 import ChatInput from "./input";
 import Message from "./message";
 import type { ChatT, MessageT } from "./types";
@@ -58,7 +59,11 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
   }, [chatId]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="h-full w-full flex items-center justify-center">
+        <Logo size={4} animation />
+      </div>
+    );
   }
 
   return (
@@ -83,9 +88,7 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
           components={{
             Footer: () => (
               <div className="h-40 px-5">
-                {sending && (
-                  <div className="size-4 bg-black rounded-full animate-pulse" />
-                )}
+                {sending && <Logo size={4} animation />}
               </div>
             ), // Needed to avoid last message being hidden behind input
             Header: () => <div className="h-4" />,

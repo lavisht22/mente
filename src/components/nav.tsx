@@ -1,6 +1,7 @@
 import { Button, Card } from "@heroui/react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { LucideHome, LucideLayers, LucideUser2 } from "lucide-react";
+import Logo from "./logo";
 
 const LINKS = [
   {
@@ -24,7 +25,7 @@ export default function Nav() {
     <Card className="relative flex h-[calc(100vh - 2rem)] flex-col rounded-full">
       <div className="p-2 flex justify-center items-center border-b border-default-200">
         <div className="p-3">
-          <div className="size-5 bg-black rounded-full" />
+          <Logo size={5} />
         </div>
       </div>
 
