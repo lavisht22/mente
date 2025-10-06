@@ -23,6 +23,7 @@
     "@milkdown/crepe": "^7.16.0",
     "@supabase/supabase-js": "^2.58.0",
     "@tailwindcss/vite": "^4.0.6",
+    "@tanstack/devtools-vite": "^0.3.4",
     "@tanstack/react-devtools": "^0.2.2",
     "@tanstack/react-query": "^5.90.2",
     "@tanstack/react-router": "^1.132.0",
