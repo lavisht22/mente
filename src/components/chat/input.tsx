@@ -257,7 +257,7 @@ export default function ChatInput({
         <CardBody>
           <TextareaAutosize
             ref={textareaRef}
-            placeholder="Type a message..."
+            placeholder="Ask anything..."
             className="outline-none resize-none bg-transparent"
             value={text}
             minRows={2}
