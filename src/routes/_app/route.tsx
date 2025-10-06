@@ -26,7 +26,7 @@ function RouteComponent() {
   const [isChatOpen, setIsChatOpen] = useState(true);
 
   return (
-    <div className="relative flex h-screen">
+    <div className="relative flex h-screen bg-default-50">
       <div className="z-10 p-4">
         <Nav />
       </div>
