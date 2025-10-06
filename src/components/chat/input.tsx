@@ -11,6 +11,7 @@ import { stream } from "fetch-event-stream";
 import { LucideArrowUp } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
+import type { VirtuosoHandle } from "react-virtuoso";
 import type { ChatT, MessageT } from "./types";
 
 interface ChatInputProps {
@@ -19,6 +20,9 @@ interface ChatInputProps {
   setChat: React.Dispatch<React.SetStateAction<ChatT | null>>;
   messages: MessageT[];
   setMessages: React.Dispatch<React.SetStateAction<MessageT[]>>;
+  sending: boolean;
+  setSending: React.Dispatch<React.SetStateAction<boolean>>;
+  virtuoso: React.RefObject<VirtuosoHandle | null>;
 }
 
 export default function ChatInput({
@@ -26,9 +30,12 @@ export default function ChatInput({
   chat,
   setChat,
   setMessages,
+  sending,
+  setSending,
+  virtuoso,
 }: ChatInputProps) {
   const [text, setText] = useState("");
-  const [sending, setSending] = useState(false);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const continueChat = useCallback(
@@ -208,6 +215,14 @@ export default function ChatInput({
       setText("");
       setChat(currentChat);
 
+      if (virtuoso.current) {
+        virtuoso.current.scrollToIndex({
+          index: Number.POSITIVE_INFINITY,
+          align: "end",
+          behavior: "smooth",
+        });
+      }
+
       setMessages((prevMessages) => [
         ...prevMessages,
         createdMessage as MessageT,
@@ -226,7 +241,7 @@ export default function ChatInput({
       // Keep focus on the textarea after sending
       textareaRef.current?.focus();
     }
-  }, [chat, setChat, setMessages, text, continueChat]);
+  }, [chat, setChat, setMessages, text, continueChat, setSending, virtuoso]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

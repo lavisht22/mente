@@ -43,7 +43,7 @@ function AssistantMessage({ message }: MessageProps) {
   }
 
   return (
-    <div className="">
+    <div>
       {message.data.content.map((part, index) => {
         if (part.type === "text") {
           return (
