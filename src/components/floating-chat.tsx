@@ -1,4 +1,5 @@
 import { Button, Card } from "@heroui/react";
+import { useRouterState } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { LucideMessageSquareShare, LucideMinimize2 } from "lucide-react";
 import Chat from "./chat";
@@ -14,6 +15,14 @@ export default function FloatingChat({
   onOpen,
   onClose,
 }: FloatingChatProps) {
+  const routerState = useRouterState();
+  const currentPath = routerState.location.pathname;
+
+  // Don't show floating chat on chat routes
+  if (currentPath.startsWith("/chats")) {
+    return null;
+  }
+
   if (!isOpen) {
     return (
       <div className="fixed bottom-6 right-6 z-30">
