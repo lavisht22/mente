@@ -1,5 +1,9 @@
 import { Accordion, AccordionItem } from "@heroui/react";
 import { useMemo } from "react";
+import Markdown from "react-markdown";
+import { rehypeInlineCodeProperty } from "react-shiki";
+import remarkGfm from "remark-gfm";
+import CodeBlock from "../code-block";
 import type { MessageT } from "./types";
 
 interface MessageProps {
@@ -31,17 +35,29 @@ function UserMessage({ message }: MessageProps) {
 
 function AssistantMessage({ message }: MessageProps) {
   if (typeof message.data.content === "string") {
-    return <div className="pl-2 mb-8">{message.data.content}</div>;
+    return (
+      <div className="pl-2 mb-8 prose">
+        <Markdown>{message.data.content}</Markdown>
+      </div>
+    );
   }
 
   return (
     <div className="">
-      {message.data.content.map((part) => {
+      {message.data.content.map((part, index) => {
         if (part.type === "text") {
           return (
-            <p key={part.text} className="pl-2 mb-8">
-              {part.text}
-            </p>
+            <div key={`${message.id}text${index}`} className="pl-2 mb-8 prose">
+              <Markdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeInlineCodeProperty]}
+                components={{
+                  code: CodeBlock,
+                }}
+              >
+                {part.text}
+              </Markdown>
+            </div>
           );
         }
 
@@ -49,7 +65,7 @@ function AssistantMessage({ message }: MessageProps) {
           return (
             <div className="mb-2">
               <Accordion
-                key={message.id + part.toolCallId}
+                key={`${message.id}tool-call${part.toolCallId}`}
                 className="mb-4"
                 variant="splitted"
               >

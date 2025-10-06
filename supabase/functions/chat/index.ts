@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are a helpful assistant.",
+            content: "You are a helpful assistant. Always output in markdown.",
           },
           ...messages,
         ],
