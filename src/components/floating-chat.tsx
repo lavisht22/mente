@@ -120,6 +120,7 @@ export default function FloatingChat({
               to={currentChatId ? `/chats/${currentChatId}` : "/chats/new"}
               isIconOnly
               variant="light"
+              isDisabled={!currentChatId}
             >
               <LucideMaximize2 className="size-4" />
             </Button>
