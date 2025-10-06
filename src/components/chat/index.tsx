@@ -1,6 +1,7 @@
 import supabase from "@/lib/supabase";
-import { addToast } from "@heroui/react";
-import { useEffect, useState } from "react";
+import { addToast, cn } from "@heroui/react";
+import { useEffect, useRef, useState } from "react";
+import { Virtuoso } from "react-virtuoso";
 import ChatInput from "./input";
 import Message from "./message";
 import type { ChatT, MessageT } from "./types";
@@ -14,6 +15,7 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
   const [loading, setLoading] = useState(true);
   const [chat, setChat] = useState<ChatT | null>(null);
   const [messages, setMessages] = useState<MessageT[]>([]);
+  const virtuoso = useRef(null);
 
   useEffect(() => {
     const init = async () => {
@@ -60,13 +62,27 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
 
   return (
     <div className="h-full w-full relative">
-      <div className="flex flex-col h-full overflow-y-scroll p-4 pb-32 ">
-        {messages.map((message) => (
-          <div key={message.id} className="w-full max-w-3xl mx-auto">
-            <Message message={message} />
-          </div>
-        ))}
-      </div>
+      <Virtuoso
+        ref={virtuoso}
+        data={messages}
+        initialTopMostItemIndex={messages.length - 1}
+        followOutput="smooth"
+        itemContent={(_index, message) => {
+          return (
+            <div
+              key={message.id}
+              className={cn("w-full max-w-3xl mx-auto px-4 py-2")}
+            >
+              <Message message={message} />
+            </div>
+          );
+        }}
+        className="h-full"
+        components={{
+          Footer: () => <div className="h-32" />,
+          Header: () => <div className="h-4" />,
+        }}
+      />
 
       <ChatInput
         style={style}

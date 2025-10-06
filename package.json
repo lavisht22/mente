@@ -40,6 +40,7 @@
     "react-markdown": "^10.1.0",
     "react-shiki": "^0.9.0",
     "react-textarea-autosize": "^8.5.9",
+    "react-virtuoso": "^4.14.1",
     "remark-gfm": "^4.0.1",
     "remove-markdown": "^0.6.2",
     "tailwindcss": "^4.0.6",
