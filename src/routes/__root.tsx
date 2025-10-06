@@ -12,7 +12,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     <>
       <Outlet />
       <TanstackDevtools
-        initialIsOpen={false}
         config={{
           position: "bottom-left",
         }}
