@@ -11,7 +11,7 @@ function RouteComponent() {
   const { id } = Route.useParams();
 
   return (
-    <div>
+    <div className="h-screen flex flex-col overflow-hidden">
       <div
         id="header"
         className="p-4 flex justify-between items-center gap-4 sticky top-0 z-10 bg-background"
@@ -22,7 +22,8 @@ function RouteComponent() {
           </Button>
         </div>
       </div>
-      <div className="p-8 max-w-4xl mx-auto">
+
+      <div className="flex-1 overflow-hidden">
         <Chat chatId={id} />
       </div>
     </div>

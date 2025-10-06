@@ -1,5 +1,5 @@
 import supabase from "@/lib/supabase";
-import { Button, Input, addToast } from "@heroui/react";
+import { Button, Card, CardBody, addToast, cn } from "@heroui/react";
 import type {
   AssistantModelMessage,
   TextStreamPart,
@@ -8,10 +8,13 @@ import type {
 } from "ai";
 import type { Json } from "db.types";
 import { stream } from "fetch-event-stream";
+import { LucideArrowUp } from "lucide-react";
 import { useCallback, useState } from "react";
+import TextareaAutosize from "react-textarea-autosize";
 import type { ChatT, MessageT } from "./types";
 
 interface ChatInputProps {
+  style?: "floating" | "normal";
   chat: ChatT | null;
   setChat: React.Dispatch<React.SetStateAction<ChatT | null>>;
   messages: MessageT[];
@@ -19,6 +22,7 @@ interface ChatInputProps {
 }
 
 export default function ChatInput({
+  style,
   chat,
   setChat,
   setMessages,
@@ -206,6 +210,8 @@ export default function ChatInput({
         ...prevMessages,
         createdMessage as MessageT,
       ]);
+
+      await continueChat();
     } catch (error) {
       addToast({
         title: "Error",
@@ -216,20 +222,46 @@ export default function ChatInput({
       setSending(false);
       setText("");
     }
-  }, [chat, setChat, setMessages, text]);
+  }, [chat, setChat, setMessages, text, continueChat]);
 
   return (
-    <div className="flex items-center gap-3 p-4 sticky bottom-0 bg-background border-t border-default-200">
-      <Input
-        placeholder="Type a message..."
-        className="flex-1"
-        value={text}
-        onValueChange={setText}
-      />
-      <Button isLoading={sending} onPress={() => send()}>
-        Send
-      </Button>
-      <Button onPress={() => continueChat()}>Continue</Button>
+    <div
+      className={cn("absolute  ", {
+        "bottom-6 left-1/2 -translate-x-1/2 w-full max-w-lg":
+          style === "normal",
+        "bottom-0 left-0 w-full": style === "floating",
+      })}
+    >
+      <Card
+        className={cn("h-full", {
+          "rounded-t-none shadow-none border-t border-default-200":
+            style === "floating",
+        })}
+      >
+        <CardBody>
+          <TextareaAutosize
+            placeholder="Type a message..."
+            className="outline-none resize-none bg-transparent"
+            value={text}
+            minRows={2}
+            maxRows={10}
+            onChange={(e) => setText(e.target.value)}
+          />
+          <div className="flex justify-between items-center">
+            <div />
+            <Button
+              color="primary"
+              isLoading={sending}
+              onPress={() => send()}
+              isIconOnly
+              radius="full"
+              size="sm"
+            >
+              <LucideArrowUp className="size-5" />
+            </Button>
+          </div>
+        </CardBody>
+      </Card>
     </div>
   );
 }

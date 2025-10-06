@@ -61,7 +61,7 @@ export default function FloatingChat({
           </Button>
         </div>
         <div className="h-full overflow-y-auto w-full overflow-x-hidden">
-          <Chat chatId="e7423fcf-454e-48e6-ab57-ec1348f878b0" />
+          <Chat style="floating" />
         </div>
       </Card>
     </motion.div>

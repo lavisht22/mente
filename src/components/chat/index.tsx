@@ -7,9 +7,10 @@ import type { ChatT, MessageT } from "./types";
 
 interface ChatProps {
   chatId?: string;
+  style?: "floating" | "normal";
 }
 
-export default function Chat({ chatId }: ChatProps) {
+export default function Chat({ chatId, style = "normal" }: ChatProps) {
   const [loading, setLoading] = useState(true);
   const [chat, setChat] = useState<ChatT | null>(null);
   const [messages, setMessages] = useState<MessageT[]>([]);
@@ -56,12 +57,17 @@ export default function Chat({ chatId }: ChatProps) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full p-4">
-      {messages.map((message) => (
-        <Message key={message.id} message={message} />
-      ))}
+    <div className="h-full w-full relative">
+      <div className="flex flex-col h-full overflow-y-scroll p-4 pb-32 ">
+        {messages.map((message) => (
+          <div key={message.id} className="w-full max-w-3xl mx-auto">
+            <Message message={message} />
+          </div>
+        ))}
+      </div>
 
       <ChatInput
+        style={style}
         chat={chat}
         setChat={setChat}
         messages={messages}
