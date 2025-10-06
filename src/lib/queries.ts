@@ -45,3 +45,18 @@ export const itemQuery = (id: string) =>
             return data;
         },
     });
+
+export const chatsQuery = queryOptions({
+    queryKey: ["chats"],
+    queryFn: async () => {
+        const { data, error } = await supabase
+            .from("chats")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(10);
+
+        if (error) throw error;
+
+        return data;
+    },
+});

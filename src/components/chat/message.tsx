@@ -59,6 +59,7 @@ function AssistantMessage({ message }: MessageProps) {
                     title: "font-mono text-sm",
                     base: "-ml-2 -mr-2",
                   }}
+                  textValue={part.toolName}
                   key={part.toolCallId}
                   title={
                     <span>

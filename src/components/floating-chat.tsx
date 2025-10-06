@@ -1,7 +1,24 @@
-import { Button, Card } from "@heroui/react";
-import { useRouterState } from "@tanstack/react-router";
+import { chatsQuery } from "@/lib/queries";
+import {
+  Button,
+  Card,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+} from "@heroui/react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
-import { LucideMessageSquareShare, LucideMinimize2 } from "lucide-react";
+import {
+  LucideHistory,
+  LucideMaximize2,
+  LucideMessageSquareShare,
+  LucidePlus,
+  LucideX,
+} from "lucide-react";
+import { useState } from "react";
 import Chat from "./chat";
 
 interface FloatingChatProps {
@@ -15,7 +32,12 @@ export default function FloatingChat({
   onOpen,
   onClose,
 }: FloatingChatProps) {
+  const { data: chats } = useSuspenseQuery(chatsQuery);
   const routerState = useRouterState();
+
+  const [currentChatId, setCurrentChatId] = useState<string | undefined>(
+    undefined,
+  );
   const currentPath = routerState.location.pathname;
 
   // Don't show floating chat on chat routes
@@ -56,12 +78,58 @@ export default function FloatingChat({
       <Card className="h-full overflow-hidden">
         <div className="p-2 flex justify-between items-center border-b border-default-200">
           <div />
-          <Button isIconOnly variant="light" onPress={onClose}>
-            <LucideMinimize2 className="size-5" />
-          </Button>
+          <div className="flex items-center">
+            <Button
+              size="sm"
+              isIconOnly
+              variant="light"
+              onPress={() => setCurrentChatId(undefined)}
+            >
+              <LucidePlus className="size-5" strokeWidth={1.7} />
+            </Button>
+            <Dropdown>
+              <DropdownTrigger>
+                <Button isIconOnly variant="light" size="sm">
+                  <LucideHistory className="size-4" />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                aria-label="Chat History"
+                emptyContent="No recent chats"
+                items={chats}
+                onAction={(key) => setCurrentChatId(key as string)}
+              >
+                {(chat) => (
+                  <DropdownItem
+                    key={chat.id}
+                    textValue={chat.name || "Untitled Chat"}
+                    title={chat.name || "Untitled Chat"}
+                    description={formatDistanceToNow(
+                      new Date(chat.created_at),
+                      { addSuffix: true },
+                    )}
+                    value={chat.id}
+                  />
+                )}
+              </DropdownMenu>
+            </Dropdown>
+            <div className="w-[1px] h-4 mx-1 bg-default-300 " />
+            <Button
+              size="sm"
+              as={Link}
+              to={currentChatId ? `/chats/${currentChatId}` : "/chats/new"}
+              isIconOnly
+              variant="light"
+            >
+              <LucideMaximize2 className="size-4" />
+            </Button>
+            <Button size="sm" isIconOnly variant="light" onPress={onClose}>
+              <LucideX className="size-4" />
+            </Button>
+          </div>
         </div>
         <div className="h-full overflow-y-auto w-full overflow-x-hidden">
-          <Chat style="floating" />
+          <Chat style="floating" chatId={currentChatId} />
         </div>
       </Card>
     </motion.div>

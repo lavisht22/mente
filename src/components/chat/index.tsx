@@ -20,6 +20,8 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
       setLoading(true);
       try {
         if (!chatId) {
+          setChat(null);
+          setMessages([]);
           return;
         }
 
