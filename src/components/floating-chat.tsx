@@ -40,11 +40,17 @@ export default function FloatingChat({
 
   if (!isOpen) {
     return (
-      <div className="fixed bottom-6 right-6 z-30">
-        <Button radius="full" isIconOnly size="lg" onPress={onOpen}>
+      <Card className="fixed bottom-6 right-6 z-50 p-1 rounded-full">
+        <Button
+          radius="full"
+          variant="light"
+          isIconOnly
+          size="lg"
+          onPress={onOpen}
+        >
           <LucideMessageSquareShare className="size-5" />
         </Button>
-      </div>
+      </Card>
     );
   }
 
