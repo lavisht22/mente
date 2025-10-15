@@ -26,7 +26,7 @@ function UserMessage({ message }: MessageProps) {
 
   return (
     <div className="flex justify-end mb-8">
-      <div className="bg-default-200 py-2 px-3 rounded-3xl rounded-tr-none max-w-lg">
+      <div className="bg-default-200/60 py-2 px-3 rounded-2xl rounded-tr-none max-w-lg">
         <p>{text}</p>
       </div>
     </div>

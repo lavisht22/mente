@@ -2,6 +2,7 @@
 .milkdown {
   --crepe-color-background: transparent;
 
+  --crepe-font-default: var(--font-sans);
   --crepe-font-title: var(--font-sans);
   --crepe-font-text: var(--font-sans);
   --crepe-font-mono: var(--font-mono);

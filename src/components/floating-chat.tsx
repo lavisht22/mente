@@ -101,6 +101,7 @@ export default function FloatingChat({
               >
                 {(chat) => (
                   <DropdownItem
+                  variant="flat"
                     key={chat.id}
                     textValue={chat.name || "Untitled Chat"}
                     title={chat.name || "Untitled Chat"}

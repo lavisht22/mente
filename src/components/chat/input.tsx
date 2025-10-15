@@ -9,9 +9,10 @@ import type {
 import type { Json } from "db.types";
 import { stream } from "fetch-event-stream";
 import { LucideArrowUp } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import type { VirtuosoHandle } from "react-virtuoso";
+import ModelSelector from "./model-selector";
 import type { ChatT, MessageT } from "./types";
 
 interface ChatInputProps {
@@ -35,6 +36,7 @@ export default function ChatInput({
   virtuoso,
 }: ChatInputProps) {
   const [text, setText] = useState("");
+  const [model, setModel] = useState(chat?.model || "gemini-2.5-pro");
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -179,7 +181,7 @@ export default function ChatInput({
       if (!chat) {
         const { data: createdChat, error: chatCreateError } = await supabase
           .from("chats")
-          .insert({ model: "gemini-2.5-pro" })
+          .insert({ model })
           .select()
           .single();
 
@@ -241,7 +243,16 @@ export default function ChatInput({
       // Keep focus on the textarea after sending
       textareaRef.current?.focus();
     }
-  }, [chat, setChat, setMessages, text, continueChat, setSending, virtuoso]);
+  }, [
+    chat,
+    setChat,
+    setMessages,
+    text,
+    continueChat,
+    setSending,
+    virtuoso,
+    model,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -254,6 +265,33 @@ export default function ChatInput({
     },
     [text, sending, send],
   );
+
+  useEffect(() => {
+    const updateModel = async () => {
+      if (!chat) return;
+      if (chat.model === model) return;
+
+      try {
+        await supabase
+          .from("chats")
+          .update({ model })
+          .eq("id", chat.id)
+          .throwOnError();
+
+        setChat((prev) => prev && { ...prev, model });
+      } catch {
+        setModel(chat.model);
+
+        addToast({
+          title: "Error",
+          description: "Failed to update model. Please try again.",
+          color: "danger",
+        });
+      }
+    };
+
+    updateModel();
+  }, [model, chat, setChat]);
 
   return (
     <div
@@ -282,16 +320,21 @@ export default function ChatInput({
           />
           <div className="flex justify-between items-center">
             <div />
-            <Button
-              color="primary"
-              isLoading={sending}
-              onPress={() => send()}
-              isIconOnly
-              radius="full"
-              size="sm"
-            >
-              <LucideArrowUp className="size-5" />
-            </Button>
+
+            <div className="flex items-center justify-end gap-2 flex-1 w-full">
+              <ModelSelector value={model} onValueChange={setModel} />
+
+              <Button
+                color="primary"
+                isLoading={sending}
+                onPress={() => send()}
+                isIconOnly
+                radius="full"
+                size="sm"
+              >
+                <LucideArrowUp className="size-5" />
+              </Button>
+            </div>
           </div>
         </CardBody>
       </Card>
