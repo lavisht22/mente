@@ -179,7 +179,7 @@ export default function ChatInput({
       if (!chat) {
         const { data: createdChat, error: chatCreateError } = await supabase
           .from("chats")
-          .insert({})
+          .insert({ model: "gemini-2.5-pro" })
           .select()
           .single();
 

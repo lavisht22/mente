@@ -1,13 +1,40 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 
 import { jsonSchema, ModelMessage, stepCountIs, streamText, tool } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createAzure } from "@ai-sdk/azure";
+import { createVertex } from "@ai-sdk/google-vertex/edge";
 import { createClient } from "@supabase/supabase-js";
 import { Database, Json } from "db.types";
 
-const openai = createOpenAI({
-  apiKey: Deno.env.get("OPENAI_API_KEY")!,
+const azure = createAzure({
+  resourceName: Deno.env.get("AZURE_RESOURCE_NAME")!,
+  apiKey: Deno.env.get("AZURE_API_KEY")!,
 });
+
+const vertex = createVertex({
+  project: "tribe-5",
+  location: "global",
+  googleCredentials: {
+    clientEmail: Deno.env.get("GOOGLE_CLIENT_EMAIL")!,
+    privateKey: Deno.env.get("GOOGLE_PRIVATE_KEY")!.replace(/\\n/g, "\n"),
+    privateKeyId: Deno.env.get("GOOGLE_PRIVATE_KEY_ID")!,
+  },
+});
+
+function getAIChatModel(model: string) {
+  switch (model) {
+    case "gpt-5":
+      return azure("gpt-5");
+    case "gpt-5-chat":
+      return azure("gpt-5-chat");
+    case "gemini-2.5-pro":
+      return vertex("gemini-2.5-pro");
+    case "gemini-2.5-flash":
+      return vertex("gemini-2.5-flash");
+    default:
+      throw new Error(`Unknown model: ${model}`);
+  }
+}
 
 const encoder = new TextEncoder();
 
@@ -69,7 +96,7 @@ Deno.serve(async (req) => {
   const body = new ReadableStream({
     async start(controller) {
       const result = await streamText({
-        model: openai("gpt-4.1"),
+        model: getAIChatModel(data.model),
         tools: {
           weather: tool({
             description: "Get the weather in a location",

@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["src/routeTree.gen.ts", "db.types.ts", "supabase/*"],
+    "ignore": ["src/routeTree.gen.ts", "./db.types.ts", "supabase/*"],
     "include": [
       "src/*",
       ".vscode/*",
