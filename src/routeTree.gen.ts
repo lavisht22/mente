@@ -10,67 +10,67 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AppRouteRouteImport } from './routes/_app/route'
-import { Route as AppSpacesRouteImport } from './routes/_app/spaces'
-import { Route as AppFRouteRouteImport } from './routes/_app/_f/route'
-import { Route as AppFIndexRouteImport } from './routes/_app/_f/index'
-import { Route as AppChatsIdRouteImport } from './routes/_app/chats/$id'
-import { Route as AppFItemsIdRouteImport } from './routes/_app/_f/items/$id'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppFRouteImport } from './routes/_app._f'
+import { Route as AppFIndexRouteImport } from './routes/_app._f.index'
+import { Route as AppChatsIdRouteImport } from './routes/_app.chats.$id'
+import { Route as AppFSpacesRouteImport } from './routes/_app._f.spaces'
+import { Route as AppFItemsIdRouteImport } from './routes/_app._f.items.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppRouteRoute = AppRouteRouteImport.update({
+const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppSpacesRoute = AppSpacesRouteImport.update({
-  id: '/spaces',
-  path: '/spaces',
-  getParentRoute: () => AppRouteRoute,
-} as any)
-const AppFRouteRoute = AppFRouteRouteImport.update({
+const AppFRoute = AppFRouteImport.update({
   id: '/_f',
-  getParentRoute: () => AppRouteRoute,
+  getParentRoute: () => AppRoute,
 } as any)
 const AppFIndexRoute = AppFIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppFRouteRoute,
+  getParentRoute: () => AppFRoute,
 } as any)
 const AppChatsIdRoute = AppChatsIdRouteImport.update({
   id: '/chats/$id',
   path: '/chats/$id',
-  getParentRoute: () => AppRouteRoute,
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFSpacesRoute = AppFSpacesRouteImport.update({
+  id: '/spaces',
+  path: '/spaces',
+  getParentRoute: () => AppFRoute,
 } as any)
 const AppFItemsIdRoute = AppFItemsIdRouteImport.update({
   id: '/items/$id',
   path: '/items/$id',
-  getParentRoute: () => AppFRouteRoute,
+  getParentRoute: () => AppFRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
-  '/spaces': typeof AppSpacesRoute
+  '/spaces': typeof AppFSpacesRoute
   '/chats/$id': typeof AppChatsIdRoute
   '/': typeof AppFIndexRoute
   '/items/$id': typeof AppFItemsIdRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
-  '/spaces': typeof AppSpacesRoute
+  '/spaces': typeof AppFSpacesRoute
   '/chats/$id': typeof AppChatsIdRoute
   '/': typeof AppFIndexRoute
   '/items/$id': typeof AppFItemsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_app': typeof AppRouteRouteWithChildren
+  '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_app/_f': typeof AppFRouteRouteWithChildren
-  '/_app/spaces': typeof AppSpacesRoute
+  '/_app/_f': typeof AppFRouteWithChildren
+  '/_app/_f/spaces': typeof AppFSpacesRoute
   '/_app/chats/$id': typeof AppChatsIdRoute
   '/_app/_f/': typeof AppFIndexRoute
   '/_app/_f/items/$id': typeof AppFItemsIdRoute
@@ -85,14 +85,14 @@ export interface FileRouteTypes {
     | '/_app'
     | '/auth'
     | '/_app/_f'
-    | '/_app/spaces'
+    | '/_app/_f/spaces'
     | '/_app/chats/$id'
     | '/_app/_f/'
     | '/_app/_f/items/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AppRouteRoute: typeof AppRouteRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
 }
 
@@ -109,79 +109,75 @@ declare module '@tanstack/react-router' {
       id: '/_app'
       path: ''
       fullPath: ''
-      preLoaderRoute: typeof AppRouteRouteImport
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_app/spaces': {
-      id: '/_app/spaces'
-      path: '/spaces'
-      fullPath: '/spaces'
-      preLoaderRoute: typeof AppSpacesRouteImport
-      parentRoute: typeof AppRouteRoute
     }
     '/_app/_f': {
       id: '/_app/_f'
       path: ''
       fullPath: ''
-      preLoaderRoute: typeof AppFRouteRouteImport
-      parentRoute: typeof AppRouteRoute
+      preLoaderRoute: typeof AppFRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/_f/': {
       id: '/_app/_f/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppFIndexRouteImport
-      parentRoute: typeof AppFRouteRoute
+      parentRoute: typeof AppFRoute
     }
     '/_app/chats/$id': {
       id: '/_app/chats/$id'
       path: '/chats/$id'
       fullPath: '/chats/$id'
       preLoaderRoute: typeof AppChatsIdRouteImport
-      parentRoute: typeof AppRouteRoute
+      parentRoute: typeof AppRoute
+    }
+    '/_app/_f/spaces': {
+      id: '/_app/_f/spaces'
+      path: '/spaces'
+      fullPath: '/spaces'
+      preLoaderRoute: typeof AppFSpacesRouteImport
+      parentRoute: typeof AppFRoute
     }
     '/_app/_f/items/$id': {
       id: '/_app/_f/items/$id'
       path: '/items/$id'
       fullPath: '/items/$id'
       preLoaderRoute: typeof AppFItemsIdRouteImport
-      parentRoute: typeof AppFRouteRoute
+      parentRoute: typeof AppFRoute
     }
   }
 }
 
-interface AppFRouteRouteChildren {
+interface AppFRouteChildren {
+  AppFSpacesRoute: typeof AppFSpacesRoute
   AppFIndexRoute: typeof AppFIndexRoute
   AppFItemsIdRoute: typeof AppFItemsIdRoute
 }
 
-const AppFRouteRouteChildren: AppFRouteRouteChildren = {
+const AppFRouteChildren: AppFRouteChildren = {
+  AppFSpacesRoute: AppFSpacesRoute,
   AppFIndexRoute: AppFIndexRoute,
   AppFItemsIdRoute: AppFItemsIdRoute,
 }
 
-const AppFRouteRouteWithChildren = AppFRouteRoute._addFileChildren(
-  AppFRouteRouteChildren,
-)
+const AppFRouteWithChildren = AppFRoute._addFileChildren(AppFRouteChildren)
 
-interface AppRouteRouteChildren {
-  AppFRouteRoute: typeof AppFRouteRouteWithChildren
-  AppSpacesRoute: typeof AppSpacesRoute
+interface AppRouteChildren {
+  AppFRoute: typeof AppFRouteWithChildren
   AppChatsIdRoute: typeof AppChatsIdRoute
 }
 
-const AppRouteRouteChildren: AppRouteRouteChildren = {
-  AppFRouteRoute: AppFRouteRouteWithChildren,
-  AppSpacesRoute: AppSpacesRoute,
+const AppRouteChildren: AppRouteChildren = {
+  AppFRoute: AppFRouteWithChildren,
   AppChatsIdRoute: AppChatsIdRoute,
 }
 
-const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(
-  AppRouteRouteChildren,
-)
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  AppRouteRoute: AppRouteRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport

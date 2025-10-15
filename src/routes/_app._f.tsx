@@ -13,9 +13,7 @@ function RouteComponent() {
   const [isChatOpen, setIsChatOpen] = useState(true);
 
   return (
-    <main
-      className={cn("min-h-screen bg-default-50", isChatOpen && "pr-[28rem]")}
-    >
+    <div className={cn(isChatOpen && "pr-[28rem]")}>
       <motion.div
         className=""
         layout
@@ -34,6 +32,6 @@ function RouteComponent() {
           onOpen={() => setIsChatOpen(true)}
         />
       </AnimatePresence>
-    </main>
+    </div>
   );
 }

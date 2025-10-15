@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import ConfirmationDialog from "@/components/confirmation-dialog";
 
 import type { Tables } from "@/../../db.types";
+import NoteEditor from "@/components/note-editor";
 import { spacesQuery } from "@/lib/queries";
 import supabase from "@/lib/supabase";
 import {
@@ -26,7 +27,6 @@ import {
   LucideEllipsisVertical,
   LucideTrash,
 } from "lucide-react";
-import NoteEditor from "./-components/note-editor";
 
 export const Route = createFileRoute("/_app/_f/items/$id")({
   component: RouteComponent,

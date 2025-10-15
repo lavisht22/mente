@@ -20,5 +20,9 @@ export const Route = createFileRoute("/_app")({
 });
 
 function RouteComponent() {
-  return <Outlet />;
+  return (
+    <main className="min-h-screen bg-default-50">
+      <Outlet />
+    </main>
+  );
 }
