@@ -11,10 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteRouteImport } from './routes/_app/route'
-import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppSpacesRouteImport } from './routes/_app/spaces'
-import { Route as AppItemsIdRouteImport } from './routes/_app/items/$id'
+import { Route as AppFRouteRouteImport } from './routes/_app/_f/route'
+import { Route as AppFIndexRouteImport } from './routes/_app/_f/index'
 import { Route as AppChatsIdRouteImport } from './routes/_app/chats/$id'
+import { Route as AppFItemsIdRouteImport } from './routes/_app/_f/items/$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -25,63 +26,69 @@ const AppRouteRoute = AppRouteRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppIndexRoute = AppIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppRouteRoute,
-} as any)
 const AppSpacesRoute = AppSpacesRouteImport.update({
   id: '/spaces',
   path: '/spaces',
   getParentRoute: () => AppRouteRoute,
 } as any)
-const AppItemsIdRoute = AppItemsIdRouteImport.update({
-  id: '/items/$id',
-  path: '/items/$id',
+const AppFRouteRoute = AppFRouteRouteImport.update({
+  id: '/_f',
   getParentRoute: () => AppRouteRoute,
+} as any)
+const AppFIndexRoute = AppFIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppFRouteRoute,
 } as any)
 const AppChatsIdRoute = AppChatsIdRouteImport.update({
   id: '/chats/$id',
   path: '/chats/$id',
   getParentRoute: () => AppRouteRoute,
 } as any)
+const AppFItemsIdRoute = AppFItemsIdRouteImport.update({
+  id: '/items/$id',
+  path: '/items/$id',
+  getParentRoute: () => AppFRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/spaces': typeof AppSpacesRoute
-  '/': typeof AppIndexRoute
   '/chats/$id': typeof AppChatsIdRoute
-  '/items/$id': typeof AppItemsIdRoute
+  '/': typeof AppFIndexRoute
+  '/items/$id': typeof AppFItemsIdRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/spaces': typeof AppSpacesRoute
-  '/': typeof AppIndexRoute
   '/chats/$id': typeof AppChatsIdRoute
-  '/items/$id': typeof AppItemsIdRoute
+  '/': typeof AppFIndexRoute
+  '/items/$id': typeof AppFItemsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_app/_f': typeof AppFRouteRouteWithChildren
   '/_app/spaces': typeof AppSpacesRoute
-  '/_app/': typeof AppIndexRoute
   '/_app/chats/$id': typeof AppChatsIdRoute
-  '/_app/items/$id': typeof AppItemsIdRoute
+  '/_app/_f/': typeof AppFIndexRoute
+  '/_app/_f/items/$id': typeof AppFItemsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/auth' | '/spaces' | '/' | '/chats/$id' | '/items/$id'
+  fullPaths: '/auth' | '/spaces' | '/chats/$id' | '/' | '/items/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/spaces' | '/' | '/chats/$id' | '/items/$id'
+  to: '/auth' | '/spaces' | '/chats/$id' | '/' | '/items/$id'
   id:
     | '__root__'
     | '/_app'
     | '/auth'
+    | '/_app/_f'
     | '/_app/spaces'
-    | '/_app/'
     | '/_app/chats/$id'
-    | '/_app/items/$id'
+    | '/_app/_f/'
+    | '/_app/_f/items/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,13 +112,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app/': {
-      id: '/_app/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRouteRoute
-    }
     '/_app/spaces': {
       id: '/_app/spaces'
       path: '/spaces'
@@ -119,12 +119,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSpacesRouteImport
       parentRoute: typeof AppRouteRoute
     }
-    '/_app/items/$id': {
-      id: '/_app/items/$id'
-      path: '/items/$id'
-      fullPath: '/items/$id'
-      preLoaderRoute: typeof AppItemsIdRouteImport
+    '/_app/_f': {
+      id: '/_app/_f'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof AppFRouteRouteImport
       parentRoute: typeof AppRouteRoute
+    }
+    '/_app/_f/': {
+      id: '/_app/_f/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof AppFIndexRouteImport
+      parentRoute: typeof AppFRouteRoute
     }
     '/_app/chats/$id': {
       id: '/_app/chats/$id'
@@ -133,21 +140,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppChatsIdRouteImport
       parentRoute: typeof AppRouteRoute
     }
+    '/_app/_f/items/$id': {
+      id: '/_app/_f/items/$id'
+      path: '/items/$id'
+      fullPath: '/items/$id'
+      preLoaderRoute: typeof AppFItemsIdRouteImport
+      parentRoute: typeof AppFRouteRoute
+    }
   }
 }
 
+interface AppFRouteRouteChildren {
+  AppFIndexRoute: typeof AppFIndexRoute
+  AppFItemsIdRoute: typeof AppFItemsIdRoute
+}
+
+const AppFRouteRouteChildren: AppFRouteRouteChildren = {
+  AppFIndexRoute: AppFIndexRoute,
+  AppFItemsIdRoute: AppFItemsIdRoute,
+}
+
+const AppFRouteRouteWithChildren = AppFRouteRoute._addFileChildren(
+  AppFRouteRouteChildren,
+)
+
 interface AppRouteRouteChildren {
+  AppFRouteRoute: typeof AppFRouteRouteWithChildren
   AppSpacesRoute: typeof AppSpacesRoute
-  AppIndexRoute: typeof AppIndexRoute
   AppChatsIdRoute: typeof AppChatsIdRoute
-  AppItemsIdRoute: typeof AppItemsIdRoute
 }
 
 const AppRouteRouteChildren: AppRouteRouteChildren = {
+  AppFRouteRoute: AppFRouteRouteWithChildren,
   AppSpacesRoute: AppSpacesRoute,
-  AppIndexRoute: AppIndexRoute,
   AppChatsIdRoute: AppChatsIdRoute,
-  AppItemsIdRoute: AppItemsIdRoute,
 }
 
 const AppRouteRouteWithChildren = AppRouteRoute._addFileChildren(

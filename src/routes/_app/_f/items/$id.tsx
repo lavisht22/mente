@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import NoteEditor from "./-components/note-editor";
 
-export const Route = createFileRoute("/_app/items/$id")({
+export const Route = createFileRoute("/_app/_f/items/$id")({
   component: RouteComponent,
 });
 
@@ -144,7 +144,7 @@ function RouteComponent() {
     <div>
       <div
         id="header"
-        className="p-4 flex justify-between items-center gap-4 sticky top-0 z-10 bg-default-50"
+        className="p-4 flex justify-between items-center gap-4 sticky top-0 left-0 z-10 bg-default-50"
       >
         <div>
           <Button isIconOnly variant="light" onPress={() => history.go(-1)}>

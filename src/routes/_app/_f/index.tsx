@@ -6,7 +6,7 @@ import { useCallback } from "react";
 import RecentItems from "./-components/recent-items";
 import RecentSpaces from "./-components/recent-spaces";
 
-export const Route = createFileRoute("/_app/")({
+export const Route = createFileRoute("/_app/_f/")({
   component: RouteComponent,
 });
 
@@ -23,7 +23,7 @@ function RouteComponent() {
   }, []);
 
   return (
-    <div>
+    <div className="w-full">
       <div className="flex items-center gap-4 p-8">
         <div className="flex-1">
           <h1 className="text-4xl">{getGreeting()}</h1>

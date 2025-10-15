@@ -8,7 +8,7 @@ import {
   DropdownTrigger,
 } from "@heroui/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import {
@@ -33,17 +33,10 @@ export default function FloatingChat({
   onClose,
 }: FloatingChatProps) {
   const { data: chats } = useSuspenseQuery(chatsQuery);
-  const routerState = useRouterState();
 
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(
     undefined,
   );
-  const currentPath = routerState.location.pathname;
-
-  // Don't show floating chat on chat routes
-  if (currentPath.startsWith("/chats")) {
-    return null;
-  }
 
   if (!isOpen) {
     return (
@@ -73,7 +66,7 @@ export default function FloatingChat({
         duration: 0.5,
         type: "spring",
       }}
-      className="h-full p-4 pl-0 sticky top-0 z-20 w-full max-w-md 2xl:max-w-lg"
+      className="h-screen p-4 pl-0 fixed top-0 right-0 z-20 w-[28rem] shrink-0"
     >
       <Card className="h-full overflow-hidden">
         <div className="p-2 flex justify-between items-center border-b border-default-200">
@@ -101,7 +94,7 @@ export default function FloatingChat({
               >
                 {(chat) => (
                   <DropdownItem
-                  variant="flat"
+                    variant="flat"
                     key={chat.id}
                     textValue={chat.name || "Untitled Chat"}
                     title={chat.name || "Untitled Chat"}
