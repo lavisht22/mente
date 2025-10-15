@@ -1,6 +1,5 @@
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router";
 
-import Nav from "@/components/nav";
 import supabase from "@/lib/supabase";
 
 export const Route = createFileRoute("/_app")({
@@ -22,7 +21,6 @@ export const Route = createFileRoute("/_app")({
 function RouteComponent() {
   return (
     <main className="min-h-screen bg-default-50">
-      <Nav />
       <Outlet />
     </main>
   );

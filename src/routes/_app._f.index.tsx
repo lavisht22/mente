@@ -1,4 +1,5 @@
 import Item from "@/components/item";
+import Nav from "@/components/nav";
 import NewDropdown from "@/components/new-dropdown";
 import Space from "@/components/space";
 import { itemsQuery, spacesQuery } from "@/lib/queries";
@@ -61,6 +62,7 @@ function RouteComponent() {
           ))}
         </div>
       </div>
+      <Nav />
     </div>
   );
 }
