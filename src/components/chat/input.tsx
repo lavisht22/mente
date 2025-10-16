@@ -67,9 +67,11 @@ export default function ChatInput({
       for await (const chunk of res) {
         if (!chunk.data) continue;
 
-        const parsed = JSON.parse(chunk.data) as TextStreamPart<{
-          [key: string]: Tool<unknown, unknown>;
-        }>;
+        const parsed = JSON.parse(chunk.data) as
+          | TextStreamPart<{
+              [key: string]: Tool<unknown, unknown>;
+            }>
+          | { type: "chat-name"; name: string };
 
         if (parsed.type === "tool-call") {
           setMessages((prev) => [
@@ -160,9 +162,13 @@ export default function ChatInput({
             }),
           );
         }
+
+        if (parsed.type === "chat-name") {
+          setChat((prev) => prev && { ...prev, name: parsed.name });
+        }
       }
     },
-    [setMessages],
+    [setMessages, setChat],
   );
 
   const send = useCallback(async () => {

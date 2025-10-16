@@ -163,6 +163,48 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Generate chat name if it doesn't exist
+      if (!data.name) {
+        const allMessages = [
+          ...messages,
+          ...lastStep.response.messages,
+        ] as ModelMessage[];
+
+        // Get the last 4 messages
+        const lastFewMessages = allMessages.slice(-4);
+
+        if (lastFewMessages.length > 0) {
+          const { generateText } = await import("ai");
+
+          const nameResult = await generateText({
+            model: azure("gpt-5-chat"),
+            prompt:
+              `You are a helpful assistant that generates concise chat titles. Generate a short, descriptive title (max 6 words) for the conversation based on the following messages. Only output the title, nothing else.\n\nMessages:\n${
+                lastFewMessages.map((m) =>
+                  `${m.role}: ${JSON.stringify(m.content)}`
+                ).join("\n")
+              }`,
+          });
+
+          const generatedName = nameResult.text.trim();
+
+          // Send the generated name through the stream
+          controller.enqueue(
+            encoder.encode(
+              `data: ${
+                JSON.stringify({ type: "chat-name", name: generatedName })
+              }\r\n\r\n`,
+            ),
+          );
+
+          // Store the generated name in the database
+          await supabase
+            .from("chats")
+            .update({ name: generatedName })
+            .eq("id", chat_id);
+        }
+      }
+
       controller.close();
     },
     cancel() {
