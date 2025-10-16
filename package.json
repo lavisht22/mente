@@ -15,6 +15,7 @@
     "db:types": "supabase gen types typescript --local --schema public > db.types.ts",
     "db:pull": "supabase db pull --local",
     "functions:serve": "supabase functions serve",
+    "functions:deploy": "supabase functions deploy",
     "trigger:dev": "npx trigger.dev@latest dev"
   },
   "dependencies": {

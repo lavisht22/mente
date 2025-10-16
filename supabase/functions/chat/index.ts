@@ -38,17 +38,28 @@ function getAIChatModel(model: string) {
 
 const encoder = new TextEncoder();
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "*",
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("OK", {
       headers: {
+        ...corsHeaders,
         "Access-Control-Max-Age": "86400",
       },
     });
   }
 
   if (req.method !== "POST") {
-    return new Response("Not Allowed", { status: 405 });
+    return new Response("Not Allowed", {
+      status: 405,
+      headers: {
+        ...corsHeaders,
+      },
+    });
   }
 
   const { chat_id }: { chat_id?: string } = await req.json();
@@ -56,7 +67,10 @@ Deno.serve(async (req) => {
   if (!chat_id) {
     return new Response(JSON.stringify({ error: "No chat id provided" }), {
       status: 400,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...corsHeaders,
+      },
     });
   }
 
@@ -87,7 +101,10 @@ Deno.serve(async (req) => {
   if (!data) {
     return new Response(JSON.stringify({ error: "Not Found" }), {
       status: 404,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...corsHeaders,
+      },
     });
   }
 
@@ -156,6 +173,7 @@ Deno.serve(async (req) => {
   return new Response(body, {
     headers: {
       "Content-Type": "text/event-stream",
+      ...corsHeaders,
     },
   });
 });
