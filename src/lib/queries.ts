@@ -60,3 +60,37 @@ export const chatsQuery = queryOptions({
         return data;
     },
 });
+
+export const chatQuery = (id: string) =>
+    queryOptions({
+        queryKey: ["chat", id],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from("chats")
+                .select("*")
+                .eq("id", id)
+                .single();
+
+            if (error) throw error;
+
+            return data;
+        },
+        enabled: !!id,
+    });
+
+export const chatMessagesQuery = (id: string) =>
+    queryOptions({
+        queryKey: ["chat_messages", id],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from("messages")
+                .select("*")
+                .eq("chat_id", id)
+                .order("created_at", { ascending: true });
+
+            if (error) throw error;
+
+            return data;
+        },
+        enabled: !!id,
+    });

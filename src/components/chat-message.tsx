@@ -1,10 +1,13 @@
 import { Accordion, AccordionItem } from "@heroui/react";
+import type { ModelMessage } from "ai";
+import type { Tables } from "db.types";
 import { useMemo } from "react";
 import Markdown from "react-markdown";
 import { rehypeInlineCodeProperty } from "react-shiki";
 import remarkGfm from "remark-gfm";
-import CodeBlock from "../code-block";
-import type { MessageT } from "./types";
+import CodeBlock from "./code-block";
+
+export type MessageT = Tables<"messages"> & { data: ModelMessage };
 
 interface MessageProps {
   message: MessageT;
