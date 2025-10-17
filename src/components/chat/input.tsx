@@ -1,6 +1,7 @@
 import supabase from "@/lib/supabase";
 import { Button, Card, CardBody, addToast, cn } from "@heroui/react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import type {
   AssistantModelMessage,
   TextStreamPart,
@@ -31,12 +32,14 @@ export default function ChatInput({
   style,
   chat,
   setChat,
+  messages,
   setMessages,
   sending,
   setSending,
   virtuoso,
 }: ChatInputProps) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [text, setText] = useState("");
   const [model, setModel] = useState(chat?.model || "gemini-2.5-pro");
@@ -240,7 +243,11 @@ export default function ChatInput({
         createdMessage as MessageT,
       ]);
 
-      await continueChat(currentChat);
+      if (style === "floating") {
+        await continueChat(currentChat);
+      } else {
+        navigate({ to: `/chats/${currentChat.id}` });
+      }
     } catch (error) {
       addToast({
         title: "Error",
@@ -262,6 +269,8 @@ export default function ChatInput({
     setSending,
     virtuoso,
     model,
+    navigate,
+    style,
   ]);
 
   const handleKeyDown = useCallback(
@@ -302,6 +311,35 @@ export default function ChatInput({
 
     updateModel();
   }, [model, chat, setChat]);
+
+  useEffect(() => {
+    const autoContinueChat = async () => {
+      if (sending) return;
+      if (!chat) return;
+
+      try {
+        setSending(true);
+
+        // Check last message if it is from user, then continue the chat
+        const lastMessage = messages[messages.length - 1];
+
+        if (lastMessage && lastMessage.data.role === "user") {
+          continueChat(chat);
+        }
+      } catch {
+        addToast({
+          title: "Error",
+          description: "Failed to continue chat. Please try again.",
+          color: "danger",
+        });
+      } finally {
+        setSending(false);
+        textareaRef.current?.focus();
+      }
+    };
+
+    autoContinueChat();
+  }, [sending, chat, messages, continueChat, setSending]);
 
   return (
     <div

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppChatsRouteImport } from './routes/_app.chats'
 import { Route as AppFRouteImport } from './routes/_app._f'
 import { Route as AppFIndexRouteImport } from './routes/_app._f.index'
 import { Route as AppChatsIdRouteImport } from './routes/_app.chats.$id'
@@ -26,6 +27,11 @@ const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppChatsRoute = AppChatsRouteImport.update({
+  id: '/chats',
+  path: '/chats',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppFRoute = AppFRouteImport.update({
   id: '/_f',
   getParentRoute: () => AppRoute,
@@ -36,9 +42,9 @@ const AppFIndexRoute = AppFIndexRouteImport.update({
   getParentRoute: () => AppFRoute,
 } as any)
 const AppChatsIdRoute = AppChatsIdRouteImport.update({
-  id: '/chats/$id',
-  path: '/chats/$id',
-  getParentRoute: () => AppRoute,
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AppChatsRoute,
 } as any)
 const AppFSpacesRoute = AppFSpacesRouteImport.update({
   id: '/spaces',
@@ -53,6 +59,7 @@ const AppFItemsIdRoute = AppFItemsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
+  '/chats': typeof AppChatsRouteWithChildren
   '/spaces': typeof AppFSpacesRoute
   '/chats/$id': typeof AppChatsIdRoute
   '/': typeof AppFIndexRoute
@@ -60,6 +67,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/chats': typeof AppChatsRouteWithChildren
   '/spaces': typeof AppFSpacesRoute
   '/chats/$id': typeof AppChatsIdRoute
   '/': typeof AppFIndexRoute
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/_app/_f': typeof AppFRouteWithChildren
+  '/_app/chats': typeof AppChatsRouteWithChildren
   '/_app/_f/spaces': typeof AppFSpacesRoute
   '/_app/chats/$id': typeof AppChatsIdRoute
   '/_app/_f/': typeof AppFIndexRoute
@@ -77,14 +86,15 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/auth' | '/spaces' | '/chats/$id' | '/' | '/items/$id'
+  fullPaths: '/auth' | '/chats' | '/spaces' | '/chats/$id' | '/' | '/items/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/spaces' | '/chats/$id' | '/' | '/items/$id'
+  to: '/auth' | '/chats' | '/spaces' | '/chats/$id' | '/' | '/items/$id'
   id:
     | '__root__'
     | '/_app'
     | '/auth'
     | '/_app/_f'
+    | '/_app/chats'
     | '/_app/_f/spaces'
     | '/_app/chats/$id'
     | '/_app/_f/'
@@ -112,6 +122,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/chats': {
+      id: '/_app/chats'
+      path: '/chats'
+      fullPath: '/chats'
+      preLoaderRoute: typeof AppChatsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/_f': {
       id: '/_app/_f'
       path: ''
@@ -128,10 +145,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/chats/$id': {
       id: '/_app/chats/$id'
-      path: '/chats/$id'
+      path: '/$id'
       fullPath: '/chats/$id'
       preLoaderRoute: typeof AppChatsIdRouteImport
-      parentRoute: typeof AppRoute
+      parentRoute: typeof AppChatsRoute
     }
     '/_app/_f/spaces': {
       id: '/_app/_f/spaces'
@@ -164,14 +181,26 @@ const AppFRouteChildren: AppFRouteChildren = {
 
 const AppFRouteWithChildren = AppFRoute._addFileChildren(AppFRouteChildren)
 
+interface AppChatsRouteChildren {
+  AppChatsIdRoute: typeof AppChatsIdRoute
+}
+
+const AppChatsRouteChildren: AppChatsRouteChildren = {
+  AppChatsIdRoute: AppChatsIdRoute,
+}
+
+const AppChatsRouteWithChildren = AppChatsRoute._addFileChildren(
+  AppChatsRouteChildren,
+)
+
 interface AppRouteChildren {
   AppFRoute: typeof AppFRouteWithChildren
-  AppChatsIdRoute: typeof AppChatsIdRoute
+  AppChatsRoute: typeof AppChatsRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppFRoute: AppFRouteWithChildren,
-  AppChatsIdRoute: AppChatsIdRoute,
+  AppChatsRoute: AppChatsRouteWithChildren,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
