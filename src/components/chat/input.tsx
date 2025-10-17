@@ -1,5 +1,6 @@
 import supabase from "@/lib/supabase";
 import { Button, Card, CardBody, addToast, cn } from "@heroui/react";
+import { useQueryClient } from "@tanstack/react-query";
 import type {
   AssistantModelMessage,
   TextStreamPart,
@@ -35,6 +36,8 @@ export default function ChatInput({
   setSending,
   virtuoso,
 }: ChatInputProps) {
+  const queryClient = useQueryClient();
+
   const [text, setText] = useState("");
   const [model, setModel] = useState(chat?.model || "gemini-2.5-pro");
 
@@ -165,10 +168,11 @@ export default function ChatInput({
 
         if (parsed.type === "chat-name") {
           setChat((prev) => prev && { ...prev, name: parsed.name });
+          queryClient.invalidateQueries({ queryKey: ["chats"] });
         }
       }
     },
-    [setMessages, setChat],
+    [setMessages, setChat, queryClient],
   );
 
   const send = useCallback(async () => {

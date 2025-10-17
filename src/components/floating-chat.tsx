@@ -18,7 +18,7 @@ import {
   LucidePlus,
   LucideX,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Chat from "./chat";
 
 interface FloatingChatProps {
@@ -37,6 +37,10 @@ export default function FloatingChat({
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(
     undefined,
   );
+
+  const currentChat = useMemo(() => {
+    return chats.find((chat) => chat.id === currentChatId);
+  }, [chats, currentChatId]);
 
   if (!isOpen) {
     return (
@@ -76,7 +80,9 @@ export default function FloatingChat({
     >
       <Card className="h-full overflow-hidden">
         <div className="p-2 flex justify-between items-center border-b border-default-200">
-          <div />
+          <div className="pl-2">
+            <p className="text-sm">{currentChat?.name}</p>
+          </div>
           <div className="flex items-center">
             <Button
               size="sm"
@@ -130,7 +136,11 @@ export default function FloatingChat({
           </div>
         </div>
         <div className="h-full overflow-y-auto w-full overflow-x-hidden">
-          <Chat style="floating" chatId={currentChatId} />
+          <Chat
+            style="floating"
+            chatId={currentChatId}
+            setChatId={setCurrentChatId}
+          />
         </div>
       </Card>
     </motion.div>

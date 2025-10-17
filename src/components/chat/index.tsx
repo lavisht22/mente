@@ -9,23 +9,38 @@ import type { ChatT, MessageT } from "./types";
 
 interface ChatProps {
   chatId?: string;
+  setChatId: React.Dispatch<React.SetStateAction<string | undefined>>;
   style?: "floating" | "normal";
 }
 
-export default function Chat({ chatId, style = "normal" }: ChatProps) {
+export default function Chat({
+  chatId,
+  setChatId,
+  style = "normal",
+}: ChatProps) {
   const [loading, setLoading] = useState(true);
   const [chat, setChat] = useState<ChatT | null>(null);
   const [messages, setMessages] = useState<MessageT[]>([]);
   const [sending, setSending] = useState(false);
   const virtuoso = useRef<VirtuosoHandle>(null);
+  const currentChatIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     const init = async () => {
+      // Skip if chatId hasn't changed
+      if (chatId === currentChatIdRef.current) {
+        setLoading(false);
+        return;
+      }
+
+      currentChatIdRef.current = chatId;
       setLoading(true);
+
       try {
         if (!chatId) {
           setChat(null);
           setMessages([]);
+          setLoading(false);
           return;
         }
 
@@ -57,6 +72,10 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
 
     init();
   }, [chatId]);
+
+  useEffect(() => {
+    setChatId(chat?.id);
+  }, [chat, setChatId]);
 
   if (loading) {
     return (

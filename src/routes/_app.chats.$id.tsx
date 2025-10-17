@@ -24,7 +24,7 @@ function RouteComponent() {
       </div>
 
       <div className="flex-1 overflow-hidden">
-        <Chat chatId={id} />
+        <Chat chatId={id} setChatId={() => {}} />
       </div>
     </div>
   );
