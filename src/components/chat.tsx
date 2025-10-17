@@ -11,7 +11,7 @@ import type {
 } from "ai";
 import type { Json } from "db.types";
 import { stream } from "fetch-event-stream";
-import { useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import ChatInput from "./chat-input";
 import Message, { type MessageT } from "./chat-message";
@@ -31,6 +31,135 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
   const { data: messages, isLoading: messagesLoading } = useQuery(
     chatMessagesQuery(chatId || ""),
   );
+
+  const continueChat = useCallback(async () => {
+    const abort = new AbortController();
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    const res = await stream(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
+      {
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ chat_id: chatId }),
+        method: "POST",
+        signal: abort.signal,
+      },
+    );
+
+    const idMap = new Map<string, string>();
+
+    for await (const chunk of res) {
+      if (!chunk.data) continue;
+
+      const parsed = JSON.parse(chunk.data) as
+        | TextStreamPart<{
+            [key: string]: Tool<unknown, unknown>;
+          }>
+        | { type: "chat-name"; name: string };
+
+      if (parsed.type === "tool-call") {
+        queryClient.setQueryData(["chat_messages", chatId], (old) => {
+          return [
+            ...((old as Array<unknown>) || []),
+            {
+              id: crypto.randomUUID(),
+              chat_id: chatId,
+              created_at: new Date().toISOString(),
+              data: {
+                role: "assistant",
+                content: [parsed],
+              },
+            } as MessageT,
+          ];
+        });
+      }
+
+      if (parsed.type === "tool-result") {
+        queryClient.setQueryData(["chat_messages", chatId], (old) => {
+          return [
+            ...((old as Array<unknown>) || []),
+            {
+              id: crypto.randomUUID(),
+              chat_id: chatId,
+              created_at: new Date().toISOString(),
+              data: {
+                role: "tool",
+                content: [parsed],
+              },
+            } as MessageT,
+          ];
+        });
+      }
+
+      if (parsed.type === "text-start") {
+        const messageId = crypto.randomUUID();
+        idMap.set(parsed.id, messageId);
+
+        queryClient.setQueryData(["chat_messages", chatId], (old) => {
+          return [
+            ...((old as Array<unknown>) || []),
+            {
+              id: messageId,
+              chat_id: chatId,
+              created_at: new Date().toISOString(),
+              data: {
+                role: "assistant",
+                content: [
+                  {
+                    type: "text",
+                    text: "",
+                    providerOptions: parsed.providerMetadata,
+                  },
+                ],
+              },
+            } as MessageT,
+          ];
+        });
+      }
+
+      if (parsed.type === "text-delta") {
+        const messageId = idMap.get(parsed.id);
+        if (!messageId) continue;
+
+        queryClient.setQueryData(["chat_messages", chatId], (old) => {
+          return (old as MessageT[]).map((message) => {
+            if (message.id !== messageId) {
+              return message;
+            }
+
+            const messageData = message.data as AssistantModelMessage;
+            const content = messageData.content[0];
+            if (typeof content === "string") return message;
+            if (content.type !== "text") {
+              return message;
+            }
+            return {
+              ...message,
+              data: {
+                ...messageData,
+                content: [
+                  {
+                    ...content,
+                    text: content.text + parsed.text,
+                  },
+                ],
+              },
+            };
+          });
+        });
+      }
+
+      if (parsed.type === "chat-name") {
+        queryClient.invalidateQueries({ queryKey: ["chats"] });
+        queryClient.invalidateQueries({ queryKey: ["chat", chatId] });
+      }
+    }
+  }, [chatId, queryClient]);
 
   const sendMutation = useMutation({
     mutationFn: async (content: string) => {
@@ -64,132 +193,7 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
         });
       }
 
-      const abort = new AbortController();
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const res = await stream(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
-        {
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-          body: JSON.stringify({ chat_id: chatId }),
-          method: "POST",
-          signal: abort.signal,
-        },
-      );
-
-      const idMap = new Map<string, string>();
-
-      for await (const chunk of res) {
-        if (!chunk.data) continue;
-
-        const parsed = JSON.parse(chunk.data) as
-          | TextStreamPart<{
-              [key: string]: Tool<unknown, unknown>;
-            }>
-          | { type: "chat-name"; name: string };
-
-        if (parsed.type === "tool-call") {
-          queryClient.setQueryData(["chat_messages", chatId], (old) => {
-            return [
-              ...((old as Array<unknown>) || []),
-              {
-                id: crypto.randomUUID(),
-                chat_id: chatId,
-                created_at: new Date().toISOString(),
-                data: {
-                  role: "assistant",
-                  content: [parsed],
-                },
-              } as MessageT,
-            ];
-          });
-        }
-
-        if (parsed.type === "tool-result") {
-          queryClient.setQueryData(["chat_messages", chatId], (old) => {
-            return [
-              ...((old as Array<unknown>) || []),
-              {
-                id: crypto.randomUUID(),
-                chat_id: chatId,
-                created_at: new Date().toISOString(),
-                data: {
-                  role: "tool",
-                  content: [parsed],
-                },
-              } as MessageT,
-            ];
-          });
-        }
-
-        if (parsed.type === "text-start") {
-          const messageId = crypto.randomUUID();
-          idMap.set(parsed.id, messageId);
-
-          queryClient.setQueryData(["chat_messages", chatId], (old) => {
-            return [
-              ...((old as Array<unknown>) || []),
-              {
-                id: messageId,
-                chat_id: chatId,
-                created_at: new Date().toISOString(),
-                data: {
-                  role: "assistant",
-                  content: [
-                    {
-                      type: "text",
-                      text: "",
-                      providerOptions: parsed.providerMetadata,
-                    },
-                  ],
-                },
-              } as MessageT,
-            ];
-          });
-        }
-
-        if (parsed.type === "text-delta") {
-          const messageId = idMap.get(parsed.id);
-          if (!messageId) continue;
-
-          queryClient.setQueryData(["chat_messages", chatId], (old) => {
-            return (old as MessageT[]).map((message) => {
-              if (message.id !== messageId) {
-                return message;
-              }
-
-              const messageData = message.data as AssistantModelMessage;
-              const content = messageData.content[0];
-              if (typeof content === "string") return message;
-              if (content.type !== "text") {
-                return message;
-              }
-              return {
-                ...message,
-                data: {
-                  ...messageData,
-                  content: [
-                    {
-                      ...content,
-                      text: content.text + parsed.text,
-                    },
-                  ],
-                },
-              };
-            });
-          });
-        }
-
-        if (parsed.type === "chat-name") {
-          queryClient.invalidateQueries({ queryKey: ["chats"] });
-          queryClient.invalidateQueries({ queryKey: ["chat", chatId] });
-        }
-      }
+      await continueChat();
     },
   });
 
@@ -222,6 +226,18 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
       }
     },
   });
+
+  useEffect(() => {
+    if (sendMutation.isPending) return;
+
+    if (messages && messages.length === 1) {
+      const firstMessage = messages[0] as MessageT;
+
+      if (firstMessage.data.role === "user") {
+        continueChat();
+      }
+    }
+  }, [continueChat, messages, sendMutation]);
 
   if (messagesLoading || chatLoading) {
     return (

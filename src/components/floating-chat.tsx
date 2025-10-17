@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import Chat from "./chat";
+import ChatNew from "./chat-new";
 
 interface FloatingChatProps {
   isOpen: boolean;
@@ -136,11 +137,11 @@ export default function FloatingChat({
           </div>
         </div>
         <div className="h-full overflow-y-auto w-full overflow-x-hidden">
-          <Chat
-            style="floating"
-            chatId={currentChatId}
-            setChatId={setCurrentChatId}
-          />
+          {currentChatId ? (
+            <Chat style="floating" chatId={currentChatId} />
+          ) : (
+            <ChatNew style="floating" setChatId={setCurrentChatId} />
+          )}
         </div>
       </Card>
     </motion.div>
