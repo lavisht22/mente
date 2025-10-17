@@ -8,7 +8,8 @@ interface LogoProps {
 export default function Logo({ size = 4, animation = false }: LogoProps) {
   return (
     <div
-      className={cn(`size-${size.toString()} bg-foreground rounded-full`, {
+      style={{ width: size * 4, height: size * 4 }}
+      className={cn("bg-foreground rounded-full", {
         "animate-pulse": animation,
       })}
     />
