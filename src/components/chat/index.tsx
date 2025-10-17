@@ -1,5 +1,5 @@
 import supabase from "@/lib/supabase";
-import { addToast, cn } from "@heroui/react";
+import { addToast } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import Logo from "../logo";
@@ -97,7 +97,7 @@ export default function Chat({
             return (
               <div
                 key={message.id}
-                className={cn("w-full max-w-3xl mx-auto px-4 py-2")}
+                className={"w-full max-w-3xl mx-auto px-4 py-2"}
               >
                 <Message message={message} />
               </div>
@@ -106,7 +106,7 @@ export default function Chat({
           className="h-full"
           components={{
             Footer: () => (
-              <div className="h-40 px-5">
+              <div className="h-40 px-5 w-full max-w-3xl mx-auto">
                 {sending && <Logo size={4} animation />}
               </div>
             ), // Needed to avoid last message being hidden behind input
