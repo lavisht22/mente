@@ -10,7 +10,7 @@ import {
   useDisclosure,
 } from "@heroui/react";
 
-import { LucideArrowUp, LucideChevronUp, LucideLightbulb } from "lucide-react";
+import { LucideArrowUp, LucideComponent, LucideLightbulb } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 
@@ -70,7 +70,7 @@ export default function ChatInput({
   return (
     <div
       className={cn("relative", {
-        "w-full mx-auto max-w-2xl px-4 pb-6": style === "normal",
+        "w-full mx-auto max-w-2xl md:px-4 md:pb-6": style === "normal",
         "w-full": style === "floating",
       })}
     >
@@ -82,13 +82,15 @@ export default function ChatInput({
         className={cn("h-full", {
           "rounded-t-none shadow-none border-t border-default-200":
             style === "floating",
+
+          "rounded-b-none md:rounded-b-large": style === "normal",
         })}
       >
         <CardBody>
           <TextareaAutosize
             ref={textareaRef}
             placeholder="Ask anything..."
-            className="outline-none resize-none bg-transparent"
+            className="outline-none resize-none bg-transparent text-base"
             value={text}
             minRows={2}
             maxRows={10}
@@ -98,21 +100,14 @@ export default function ChatInput({
           <div className="flex justify-between items-center">
             <div />
 
-            <div className="flex items-center justify-end gap-2 flex-1 w-full">
+            <div className="flex items-center justify-end gap-2 flex-1 w-full p-2 md:p-0">
               <Dropdown isOpen={isOpen} onOpenChange={onOpenChange}>
                 <DropdownTrigger>
                   <Button
-                    variant="flat"
-                    size="sm"
+                    variant="light"
                     radius="full"
-                    endContent={
-                      <LucideChevronUp
-                        className={cn(
-                          "size-4 animate duration-200",
-                          isOpen && "rotate-180",
-                        )}
-                      />
-                    }
+                    className="px-3 gap-2"
+                    startContent={<LucideComponent className="size-4" />}
                   >
                     {model}
                   </Button>
@@ -142,7 +137,8 @@ export default function ChatInput({
               </Dropdown>
 
               <Button
-                color="primary"
+                isDisabled={!text.trim() || sending}
+                variant="flat"
                 isLoading={sending}
                 onPress={() => {
                   send(text);
@@ -150,7 +146,6 @@ export default function ChatInput({
                 }}
                 isIconOnly
                 radius="full"
-                size="sm"
               >
                 <LucideArrowUp className="size-5" />
               </Button>
