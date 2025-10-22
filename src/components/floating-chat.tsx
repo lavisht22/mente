@@ -85,14 +85,16 @@ export default function FloatingChat({
             <p className="text-sm">{currentChat?.name}</p>
           </div>
           <div className="flex items-center">
-            <Button
-              size="sm"
-              isIconOnly
-              variant="light"
-              onPress={() => setCurrentChatId(undefined)}
-            >
-              <LucidePlus className="size-5" strokeWidth={1.7} />
-            </Button>
+            {currentChatId !== undefined && (
+              <Button
+                size="sm"
+                isIconOnly
+                variant="light"
+                onPress={() => setCurrentChatId(undefined)}
+              >
+                <LucidePlus className="size-5" strokeWidth={1.7} />
+              </Button>
+            )}
             <Dropdown>
               <DropdownTrigger>
                 <Button isIconOnly variant="light" size="sm">
@@ -124,10 +126,9 @@ export default function FloatingChat({
             <Button
               size="sm"
               as={Link}
-              to={currentChatId ? `/chats/${currentChatId}` : "/chats/new"}
+              to={currentChatId ? `/chats/${currentChatId}` : "/chats"}
               isIconOnly
               variant="light"
-              isDisabled={!currentChatId}
             >
               <LucideMaximize2 className="size-4" />
             </Button>

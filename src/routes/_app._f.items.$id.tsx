@@ -144,16 +144,22 @@ function RouteComponent() {
     <div>
       <div
         id="header"
-        className="p-4 flex justify-between items-center gap-4 sticky top-0 left-0 z-10 bg-default-50"
+        className="p-2 flex justify-between items-center gap-4 sticky top-0 left-0 z-10 bg-default-50"
       >
         <div>
-          <Button isIconOnly variant="light" onPress={() => history.go(-1)}>
+          <Button
+            size="lg"
+            isIconOnly
+            variant="light"
+            onPress={() => history.go(-1)}
+          >
             <LucideArrowLeft className="size-4" />
           </Button>
         </div>
 
         <div className="flex-1 flex justify-end items-center gap-2">
           <Select
+            size="lg"
             variant="bordered"
             color="primary"
             className="w-full max-w-40"
@@ -167,7 +173,7 @@ function RouteComponent() {
           </Select>
           <Dropdown backdrop="blur">
             <DropdownTrigger>
-              <Button variant="light" isIconOnly>
+              <Button size="lg" variant="light" isIconOnly>
                 <LucideEllipsisVertical className="size-4" />
               </Button>
             </DropdownTrigger>
