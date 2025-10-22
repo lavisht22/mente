@@ -76,7 +76,7 @@ function Auth() {
         </div>
 
         <InputOtp
-          size="sm"
+          size="lg"
           autoFocus
           length={6}
           value={otp}
@@ -92,9 +92,10 @@ function Auth() {
 
         <div className="flex gap-2 w-full">
           <Button
+            size="lg"
             variant="flat"
-            startContent={<LucideArrowLeft className="size-4" />}
             fullWidth
+            startContent={<LucideArrowLeft className="size-4" />}
             onPress={() => {
               setOtpSent(false);
               setOtp("");
@@ -105,6 +106,7 @@ function Auth() {
             Change Email
           </Button>
           <Button
+            size="lg"
             color="primary"
             fullWidth
             isLoading={loading}
@@ -126,15 +128,23 @@ function Auth() {
           Enter your email to receive a one-time code.
         </p>
       </div>
+
       <Input
-        placeholder="Email"
+        size="lg"
+        placeholder="abc@xyz.com"
         value={email}
         onValueChange={setEmail}
         disabled={loading}
         isInvalid={!!error}
         errorMessage={error || undefined}
       />
-      <Button color="primary" fullWidth isLoading={loading} onPress={sendOtp}>
+      <Button
+        size="lg"
+        color="primary"
+        fullWidth
+        isLoading={loading}
+        onPress={sendOtp}
+      >
         Continue
       </Button>
     </>
@@ -143,8 +153,8 @@ function Auth() {
 
 function RouteComponent() {
   return (
-    <div className="min-h-[100dvh] min-w-[100dvw] bg-default-50 flex items-start pt-[15vh] ">
-      <div className="flex flex-col items-center gap-4 max-w-md p-4 mx-auto">
+    <div className="min-h-[100dvh] min-w-[100dvw] bg-default-50 flex items-start pt-[10vh] ">
+      <div className="flex flex-col items-center gap-4 w-full max-w-md p-4 mx-auto">
         <div className="flex justify-center items-center gap-2 mb-8 border-b border-default-200 p-4 w-fit">
           <Logo size={5} />
           <h1 className="text-3xl">mente</h1>
