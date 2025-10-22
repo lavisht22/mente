@@ -15,7 +15,7 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
 
   const createChatMutation = useMutation({
     mutationFn: async (content: string) => {
-      const { data, error } = await supabase
+      const { data: chat, error: chatError } = await supabase
         .from("chats")
         .insert({
           model,
@@ -23,8 +23,8 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
         .select()
         .single();
 
-      if (error) {
-        throw error;
+      if (chatError) {
+        throw chatError;
       }
 
       const userMessage: UserModelMessage = {
@@ -32,20 +32,23 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
         content,
       };
 
-      await supabase
+      const { data: message, error: messageError } = await supabase
         .from("messages")
         .insert({
-          chat_id: data.id,
+          chat_id: chat.id,
           data: userMessage as Json,
         })
         .select()
-        .single()
-        .throwOnError();
+        .single();
 
-      return data;
+      if (messageError) {
+        throw messageError;
+      }
+
+      return { chat, message };
     },
-    onSuccess: (data) => {
-      setChatId(data.id);
+    onSuccess: ({ chat }) => {
+      setChatId(chat.id);
     },
   });
 

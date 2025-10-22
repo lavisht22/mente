@@ -162,28 +162,31 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
   }, [chatId, queryClient]);
 
   const sendMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const userMessage: UserModelMessage = {
-        role: "user",
-        content,
-      };
+    mutationFn: async (content?: string) => {
+      if (content) {
+        const userMessage: UserModelMessage = {
+          role: "user",
+          content,
+        };
 
-      const { data: createdMessage, error: messageCreateError } = await supabase
-        .from("messages")
-        .insert({
-          chat_id: chatId,
-          data: userMessage as Json,
-        })
-        .select()
-        .single();
+        const { data: createdMessage, error: messageCreateError } =
+          await supabase
+            .from("messages")
+            .insert({
+              chat_id: chatId,
+              data: userMessage as Json,
+            })
+            .select()
+            .single();
 
-      if (messageCreateError) {
-        throw messageCreateError;
+        if (messageCreateError) {
+          throw messageCreateError;
+        }
+
+        queryClient.setQueryData(["chat_messages", chatId], (old) => {
+          return [...((old as Array<unknown>) || []), createdMessage];
+        });
       }
-
-      queryClient.setQueryData(["chat_messages", chatId], (old) => {
-        return [...((old as Array<unknown>) || []), createdMessage];
-      });
 
       if (virtuoso.current) {
         virtuoso.current.scrollToIndex({
@@ -234,10 +237,10 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
       const firstMessage = messages[0] as MessageT;
 
       if (firstMessage.data.role === "user") {
-        continueChat();
+        sendMutation.mutate(undefined);
       }
     }
-  }, [continueChat, messages, sendMutation]);
+  }, [messages, sendMutation]);
 
   if (messagesLoading || chatLoading) {
     return (
@@ -269,22 +272,10 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
           components={{
             Footer: () => (
               <div className="h-40 px-5 w-full max-w-3xl mx-auto">
-                {false && <Logo size={4} animation />}
+                {sendMutation.isPending && <Logo size={4} animation />}
               </div>
             ), // Needed to avoid last message being hidden behind input
             Header: () => <div className="h-4" />,
-            EmptyPlaceholder: () => (
-              <div className="h-[calc(100%-12rem)] w-full flex flex-col items-center justify-center">
-                <div className="text-center">
-                  <h3 className="text-2xl text-default-500">
-                    Start a new chat
-                  </h3>
-                  <p className="text-default-500">
-                    Type a message below to start a new conversation.
-                  </p>
-                </div>
-              </div>
-            ),
           }}
         />
       </div>
