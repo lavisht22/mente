@@ -262,7 +262,7 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
             return (
               <div
                 key={message.id}
-                className={"w-full max-w-3xl mx-auto px-4 py-2"}
+                className={"w-full max-w-2xl mx-auto px-4 py-2"}
               >
                 <Message message={message as MessageT} />
               </div>
@@ -270,11 +270,13 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
           }}
           className="h-full"
           components={{
-            Footer: () => (
-              <div className="h-40 px-5 w-full max-w-3xl mx-auto">
-                {sendMutation.isPending && <Logo size={4} animation />}
-              </div>
-            ), // Needed to avoid last message being hidden behind input
+            Footer: sendMutation.isPending
+              ? () => (
+                  <div className="w-full max-w-2xl mx-auto px-5 h-10">
+                    <Logo size={4} animation />
+                  </div>
+                )
+              : undefined,
             Header: () => <div className="h-4" />,
           }}
         />

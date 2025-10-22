@@ -54,14 +54,12 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
 
   return (
     <div className="h-full w-full relative flex flex-col">
-      <div className="flex-1">
-        <div className="h-[calc(100%-12rem)] w-full flex flex-col items-center justify-center">
-          <div className="text-center">
-            <h3 className="text-2xl text-default-500">Start a new chat</h3>
-            <p className="text-default-500">
-              Type a message below to start a new conversation.
-            </p>
-          </div>
+      <div className="flex-1 p-4 h-full w-full flex flex-col items-center justify-center">
+        <div className="text-center -mt-48">
+          <h3 className="text-2xl text-default-500">Start a new chat</h3>
+          <p className="text-default-500">
+            Type a message below to start a new conversation.
+          </p>
         </div>
       </div>
 

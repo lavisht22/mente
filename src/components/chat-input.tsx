@@ -69,12 +69,15 @@ export default function ChatInput({
 
   return (
     <div
-      className={cn("absolute  ", {
-        "bottom-6 left-1/2 -translate-x-1/2 w-full max-w-lg":
-          style === "normal",
-        "bottom-0 left-0 w-full": style === "floating",
+      className={cn("relative", {
+        "w-full mx-auto max-w-2xl px-4 pb-6": style === "normal",
+        "w-full": style === "floating",
       })}
     >
+      {style === "normal" && (
+        <div className="absolute top-0 left-0 h-16 w-full -translate-y-16 bg-gradient-to-b from-transparent to-default-50" />
+      )}
+
       <Card
         className={cn("h-full", {
           "rounded-t-none shadow-none border-t border-default-200":
