@@ -6,11 +6,13 @@ import Markdown from "react-markdown";
 import { rehypeInlineCodeProperty } from "react-shiki";
 import remarkGfm from "remark-gfm";
 import CodeBlock from "./code-block";
+import Logo from "./logo";
 
 export type MessageT = Tables<"messages"> & { data: ModelMessage };
 
 interface MessageProps {
   message: MessageT;
+  loading?: boolean;
 }
 
 function UserMessage({ message }: MessageProps) {
@@ -28,7 +30,7 @@ function UserMessage({ message }: MessageProps) {
   }, [message]);
 
   return (
-    <div className="flex justify-end mb-8">
+    <div className="flex justify-end">
       <div className="bg-default-200/60 py-2 px-3 rounded-2xl rounded-tr-none max-w-lg">
         <p>{text}</p>
       </div>
@@ -36,11 +38,14 @@ function UserMessage({ message }: MessageProps) {
   );
 }
 
-function AssistantMessage({ message }: MessageProps) {
+function AssistantMessage({ message, loading }: MessageProps) {
   if (typeof message.data.content === "string") {
     return (
-      <div className="pl-2 mb-8 prose">
-        <Markdown>{message.data.content}</Markdown>
+      <div className="flex gap-4">
+        <Logo className="mt-1.5 shrink-0" size={4} animation={loading} />
+        <div className="prose">
+          <Markdown>{message.data.content}</Markdown>
+        </div>
       </div>
     );
   }
@@ -50,50 +55,50 @@ function AssistantMessage({ message }: MessageProps) {
       {message.data.content.map((part, index) => {
         if (part.type === "text") {
           return (
-            <div key={`${message.id}text${index}`} className="pl-2 mb-8 prose">
-              <Markdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeInlineCodeProperty]}
-                components={{
-                  code: CodeBlock,
-                }}
-              >
-                {part.text}
-              </Markdown>
+            <div key={`${message.id}text${index}`} className="flex gap-4">
+              <Logo className="mt-1.5 shrink-0" size={4} animation={loading} />
+              <div className="prose">
+                <Markdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeInlineCodeProperty]}
+                  components={{
+                    code: CodeBlock,
+                  }}
+                >
+                  {part.text}
+                </Markdown>
+              </div>
             </div>
           );
         }
 
         if (part.type === "tool-call") {
           return (
-            <div className="mb-2">
-              <Accordion
-                key={`${message.id}tool-call${part.toolCallId}`}
-                className="mb-4"
-                variant="splitted"
+            <Accordion
+              key={`${message.id}tool-call${part.toolCallId}`}
+              variant="splitted"
+            >
+              <AccordionItem
+                classNames={{
+                  trigger: "py-2",
+                  title: "font-mono text-sm",
+                  base: "-ml-2 -mr-2",
+                }}
+                textValue={part.toolName}
+                key={part.toolCallId}
+                title={
+                  <span>
+                    Using{" "}
+                    <span className="underline underline-offset-2">
+                      {part.toolName}
+                    </span>{" "}
+                    tool
+                  </span>
+                }
               >
-                <AccordionItem
-                  classNames={{
-                    trigger: "py-2",
-                    title: "font-mono text-sm",
-                    base: "-ml-2 -mr-2",
-                  }}
-                  textValue={part.toolName}
-                  key={part.toolCallId}
-                  title={
-                    <span>
-                      Using{" "}
-                      <span className="underline underline-offset-2">
-                        {part.toolName}
-                      </span>{" "}
-                      tool
-                    </span>
-                  }
-                >
-                  ToolContent
-                </AccordionItem>
-              </Accordion>
-            </div>
+                ToolContent
+              </AccordionItem>
+            </Accordion>
           );
         }
       })}
@@ -101,13 +106,21 @@ function AssistantMessage({ message }: MessageProps) {
   );
 }
 
-export default function Message({ message }: MessageProps) {
+export default function Message({ message, ...props }: MessageProps) {
   if (message.data.role === "user") {
-    return <UserMessage message={message} />;
+    return (
+      <div className="w-full max-w-2xl mx-auto p-6">
+        <UserMessage message={message} {...props} />
+      </div>
+    );
   }
 
   if (message.data.role === "assistant") {
-    return <AssistantMessage message={message} />;
+    return (
+      <div className="w-full max-w-2xl mx-auto p-6">
+        <AssistantMessage message={message} {...props} />
+      </div>
+    );
   }
 
   return null;

@@ -258,27 +258,20 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
           data={messages}
           initialTopMostItemIndex={messages && messages.length - 1}
           followOutput="smooth"
-          itemContent={(_index, message) => {
+          itemContent={(index, message) => {
             return (
-              <div
+              <Message
                 key={message.id}
-                className={"w-full max-w-2xl mx-auto px-4 py-2"}
-              >
-                <Message message={message as MessageT} />
-              </div>
+                message={message as MessageT}
+                loading={
+                  sendMutation.isPending &&
+                  messages &&
+                  index === messages.length - 1
+                }
+              />
             );
           }}
           className="h-full"
-          components={{
-            Footer: sendMutation.isPending
-              ? () => (
-                  <div className="w-full max-w-2xl mx-auto px-5 h-10">
-                    <Logo size={4} animation />
-                  </div>
-                )
-              : undefined,
-            Header: () => <div className="h-4" />,
-          }}
         />
       </div>
 
