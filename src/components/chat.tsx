@@ -12,7 +12,6 @@ import type {
 import type { Json } from "db.types";
 import { stream } from "fetch-event-stream";
 import { useCallback, useEffect, useRef } from "react";
-import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import ChatInput from "./chat-input";
 import Message, { type MessageT } from "./chat-message";
 import Logo from "./logo";
@@ -23,14 +22,38 @@ interface ChatProps {
 }
 
 export default function Chat({ chatId, style = "normal" }: ChatProps) {
-  const virtuoso = useRef<VirtuosoHandle>(null);
-
   const queryClient = useQueryClient();
 
   const { data: chat, isLoading: chatLoading } = useQuery(chatQuery(chatId));
-  const { data: messages, isLoading: messagesLoading } = useQuery(
-    chatMessagesQuery(chatId || ""),
-  );
+  const { data: messages, isLoading: messagesLoading } = useQuery({
+    ...chatMessagesQuery(chatId || ""),
+  });
+
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const lastScrollPositionRef = useRef<number>(0);
+  const hasUserScrolledUpRef = useRef<boolean>(false);
+
+  // Track scroll position to update the ref
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY < lastScrollPositionRef.current) {
+        // User has scrolled up
+        console.log("User has scrolled up");
+        hasUserScrolledUpRef.current = true;
+      }
+
+      lastScrollPositionRef.current = window.scrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Helper function to scroll to bottom
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    bottomRef.current?.scrollIntoView({ behavior });
+  }, []);
 
   const continueChat = useCallback(async () => {
     const abort = new AbortController();
@@ -51,6 +74,8 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
       },
     );
 
+    hasUserScrolledUpRef.current = false;
+
     const idMap = new Map<string, string>();
 
     for await (const chunk of res) {
@@ -61,8 +86,6 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
             [key: string]: Tool<unknown, unknown>;
           }>
         | { type: "chat-name"; name: string };
-
-      console.log("Parsed chunk:", parsed);
 
       if (parsed.type === "tool-call") {
         queryClient.setQueryData(["chat_messages", chatId], (old) => {
@@ -160,8 +183,12 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
         queryClient.invalidateQueries({ queryKey: ["chats"] });
         queryClient.invalidateQueries({ queryKey: ["chat", chatId] });
       }
+
+      if (!hasUserScrolledUpRef.current) {
+        scrollToBottom("smooth");
+      }
     }
-  }, [chatId, queryClient]);
+  }, [chatId, queryClient, scrollToBottom]);
 
   const sendMutation = useMutation({
     mutationFn: async (content?: string) => {
@@ -190,13 +217,10 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
         });
       }
 
-      if (virtuoso.current) {
-        virtuoso.current.scrollToIndex({
-          index: Number.POSITIVE_INFINITY,
-          align: "end",
-          behavior: "smooth",
-        });
-      }
+      // Always scroll to bottom when user sends a message
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
 
       await continueChat();
     },
@@ -253,35 +277,21 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
   }
 
   return (
-    <div className="h-full w-full relative flex flex-col">
-      <div className="flex-1">
-        <Virtuoso
-          ref={virtuoso}
-          className="h-full"
-          data={messages}
-          initialTopMostItemIndex={messages && messages.length - 1}
-          followOutput="smooth"
-          itemContent={(index, message) => {
-            return (
-              <Message
-                key={message.id}
-                message={message as MessageT}
-                loading={
-                  sendMutation.isPending &&
-                  messages &&
-                  index === messages.length - 1
-                }
-              />
-            );
-          }}
-          components={{
-            Footer: () => (
-              <div
-                className={cn("h-8 w-full", { "h-40": style === "normal" })}
-              />
-            ),
-          }}
-        />
+    <div className="w-full h-full relative flex flex-col">
+      <div className="w-full flex-1">
+        {messages?.map((message, index) => (
+          <Message
+            key={message.id}
+            message={message as MessageT}
+            loading={
+              sendMutation.isPending &&
+              messages &&
+              index === messages.length - 1
+            }
+          />
+        ))}
+        <div className={cn("h-8 w-full", { "h-40": style === "normal" })} />
+        <div ref={bottomRef} />
       </div>
 
       <ChatInput

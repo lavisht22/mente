@@ -159,7 +159,6 @@ function RouteComponent() {
 
         <div className="flex-1 flex justify-end items-center gap-2">
           <Select
-            size="lg"
             variant="bordered"
             color="primary"
             className="w-full max-w-40"
