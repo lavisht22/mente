@@ -11,7 +11,7 @@ import {
 } from "@heroui/react";
 
 import { LucideArrowUp, LucideComponent, LucideLightbulb } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 
 const MODELS = [
@@ -49,9 +49,28 @@ export default function ChatInput({
   onModelChange,
 }: ChatInputProps) {
   const [text, setText] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+  const [isPWA, setIsPWA] = useState(false);
   const { isOpen, onOpenChange } = useDisclosure();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Detect PWA fullscreen mode
+  useEffect(() => {
+    const checkPWA = () => {
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone ===
+          true;
+      setIsPWA(isStandalone);
+    };
+
+    checkPWA();
+    const mediaQuery = window.matchMedia("(display-mode: standalone)");
+    mediaQuery.addEventListener("change", checkPWA);
+
+    return () => mediaQuery.removeEventListener("change", checkPWA);
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -69,8 +88,9 @@ export default function ChatInput({
 
   return (
     <div
-      className={cn("relative", {
-        "w-full mx-auto max-w-2xl md:px-4 md:pb-6": style === "normal",
+      className={cn({
+        "fixed bottom-0 w-full left-0 right-0 mx-auto max-w-2xl md:px-4 md:pb-6":
+          style === "normal",
         "w-full": style === "floating",
       })}
     >
@@ -86,7 +106,12 @@ export default function ChatInput({
           "rounded-b-none md:rounded-b-large": style === "normal",
         })}
       >
-        <CardBody>
+        <CardBody
+          className={cn("gap-2", {
+            "pb-6": isPWA && !isFocused,
+            "pb-3": isPWA && isFocused,
+          })}
+        >
           <TextareaAutosize
             ref={textareaRef}
             placeholder="Ask anything..."
@@ -96,11 +121,13 @@ export default function ChatInput({
             maxRows={10}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
           />
           <div className="flex justify-between items-center">
             <div />
 
-            <div className="flex items-center justify-end gap-2 flex-1 w-full p-2 md:p-0">
+            <div className="flex items-center justify-end gap-2 flex-1 w-full">
               <Dropdown isOpen={isOpen} onOpenChange={onOpenChange}>
                 <DropdownTrigger>
                   <Button

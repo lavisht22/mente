@@ -1,7 +1,7 @@
 import { chatMessagesQuery, chatQuery } from "@/lib/queries";
 
 import supabase from "@/lib/supabase";
-import { addToast } from "@heroui/react";
+import { addToast, cn } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   AssistantModelMessage,
@@ -275,7 +275,11 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
             );
           }}
           components={{
-            Footer: () => <div className="h-8 w-full" />,
+            Footer: () => (
+              <div
+                className={cn("h-8 w-full", { "h-40": style === "normal" })}
+              />
+            ),
           }}
         />
       </div>
