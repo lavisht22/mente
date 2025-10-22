@@ -1,9 +1,9 @@
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { LucideMessageSquareShare } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import FloatingChat from "@/components/floating-chat";
+import Logo from "@/components/logo";
 import { Button, Card, cn } from "@heroui/react";
 
 export const Route = createFileRoute("/_app/_f")({
@@ -53,7 +53,7 @@ function RouteComponent() {
             as={Link}
             to="/chats"
           >
-            <LucideMessageSquareShare className="size-5" />
+            <Logo size={6} />
           </Button>
         </Card>
       </div>

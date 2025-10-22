@@ -30,6 +30,7 @@ function RouteComponent() {
           setChatId={(id: string) => {
             navigate({
               to: `/chats/${id}`,
+              replace: true,
             });
           }}
         />

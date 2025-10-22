@@ -14,13 +14,13 @@ import { motion } from "framer-motion";
 import {
   LucideHistory,
   LucideMaximize2,
-  LucideMessageSquareShare,
   LucidePlus,
   LucideX,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import Chat from "./chat";
 import ChatNew from "./chat-new";
+import Logo from "./logo";
 
 interface FloatingChatProps {
   isOpen: boolean;
@@ -53,7 +53,7 @@ export default function FloatingChat({
           size="lg"
           onPress={onOpen}
         >
-          <LucideMessageSquareShare className="size-5" />
+          <Logo size={6} />
         </Button>
       </Card>
     );
