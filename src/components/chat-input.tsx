@@ -107,9 +107,9 @@ export default function ChatInput({
         })}
       >
         <CardBody
-          className={cn("gap-2", {
+          className={cn("gap-2 p-4", {
             "pb-6": isPWA && !isFocused,
-            "pb-3": isPWA && isFocused,
+            "pb-4": isPWA && isFocused,
           })}
         >
           <TextareaAutosize
