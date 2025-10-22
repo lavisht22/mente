@@ -109,7 +109,7 @@ function AssistantMessage({ message, loading }: MessageProps) {
 export default function Message({ message, ...props }: MessageProps) {
   if (message.data.role === "user") {
     return (
-      <div className="w-full max-w-2xl mx-auto p-6">
+      <div className="w-full max-w-2xl mx-auto p-4">
         <UserMessage message={message} {...props} />
       </div>
     );
@@ -117,11 +117,11 @@ export default function Message({ message, ...props }: MessageProps) {
 
   if (message.data.role === "assistant") {
     return (
-      <div className="w-full max-w-2xl mx-auto p-6">
+      <div className="w-full max-w-2xl mx-auto p-4">
         <AssistantMessage message={message} {...props} />
       </div>
     );
   }
 
-  return null;
+  return <div className="h-[1px]" />;
 }

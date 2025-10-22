@@ -62,6 +62,8 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
           }>
         | { type: "chat-name"; name: string };
 
+      console.log("Parsed chunk:", parsed);
+
       if (parsed.type === "tool-call") {
         queryClient.setQueryData(["chat_messages", chatId], (old) => {
           return [
@@ -255,6 +257,7 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
       <div className="flex-1">
         <Virtuoso
           ref={virtuoso}
+          className="h-full"
           data={messages}
           initialTopMostItemIndex={messages && messages.length - 1}
           followOutput="smooth"
@@ -271,7 +274,9 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
               />
             );
           }}
-          className="h-full"
+          components={{
+            Footer: () => <div className="h-8 w-full" />,
+          }}
         />
       </div>
 
