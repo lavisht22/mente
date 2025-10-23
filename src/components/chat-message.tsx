@@ -1,7 +1,8 @@
-import { Accordion, AccordionItem } from "@heroui/react";
+import { Accordion, AccordionItem, Button, cn } from "@heroui/react";
 import type { ModelMessage } from "ai";
 import type { Tables } from "db.types";
-import { useMemo } from "react";
+import { ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import { rehypeInlineCodeProperty } from "react-shiki";
 import remarkGfm from "remark-gfm";
@@ -16,6 +17,10 @@ interface MessageProps {
 }
 
 function UserMessage({ message }: MessageProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isClamped, setIsClamped] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
+
   const text = useMemo(() => {
     if (typeof message.data.content === "string") {
       return message.data.content;
@@ -29,10 +34,40 @@ function UserMessage({ message }: MessageProps) {
     }
   }, [message]);
 
+  // Check if the text is actually clamped (overflow)
+  useEffect(() => {
+    const element = textRef.current;
+    if (element) {
+      // Check if the scrollHeight is greater than clientHeight (meaning content is clamped)
+      setIsClamped(element.scrollHeight > element.clientHeight);
+    }
+  }, []);
+
   return (
     <div className="flex justify-end">
-      <div className="bg-default-200/60 py-2 px-3 rounded-2xl rounded-tr-none max-w-lg">
-        <p>{text}</p>
+      <div className="bg-default-200/60 py-2 px-3 rounded-2xl rounded-tr-none max-w-lg relative flex">
+        <p
+          ref={textRef}
+          className={cn("flex-1 whitespace-pre-wrap", {
+            "line-clamp-5": !isExpanded,
+          })}
+        >
+          {text}
+        </p>
+        {isClamped && (
+          <Button
+            className="-mr-1"
+            isIconOnly
+            size="sm"
+            variant="light"
+            onPress={() => setIsExpanded(!isExpanded)}
+            aria-label={isExpanded ? "Collapse message" : "Expand message"}
+          >
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+            />
+          </Button>
+        )}
       </div>
     </div>
   );
