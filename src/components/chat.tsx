@@ -290,7 +290,9 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
             }
           />
         ))}
-        <div className={cn("h-8 w-full", { "h-40": style === "normal" })} />
+        <div
+          className={cn("h-8 w-full", { "h-40 md:h-48": style === "normal" })}
+        />
         <div ref={bottomRef} />
       </div>
 

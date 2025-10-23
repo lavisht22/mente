@@ -91,31 +91,25 @@ export default function ChatInput({
       className={cn({
         "fixed bottom-0 w-full left-0 right-0 mx-auto max-w-2xl md:px-4 md:pb-6 bg-default-50":
           style === "normal",
-        "w-full": style === "floating",
+        "w-full sticky bottom-0": style === "floating",
       })}
     >
-      {style === "normal" && (
-        <div className="absolute top-0 left-0 h-16 w-full -translate-y-16 bg-gradient-to-b from-transparent to-default-50" />
-      )}
-
       <Card
         className={cn("h-full", {
-          "rounded-t-none shadow-none border-t border-default-200":
-            style === "floating",
+          "rounded-b-none": style === "floating",
 
           "rounded-b-none md:rounded-b-large": style === "normal",
         })}
       >
         <CardBody
-          className={cn("gap-2 p-4", {
-            "pb-6": isPWA && !isFocused,
-            "pb-4": isPWA && isFocused,
+          className={cn("gap-2 p-0 pb-2 md:pb-2", {
+            "pb-6 md:pb-4": isPWA && !isFocused,
           })}
         >
           <TextareaAutosize
             ref={textareaRef}
             placeholder="Ask anything..."
-            className="outline-none resize-none bg-transparent text-base"
+            className="outline-none resize-none bg-transparent text-base px-4 pt-4"
             value={text}
             minRows={2}
             maxRows={10}
@@ -124,16 +118,14 @@ export default function ChatInput({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
           />
-          <div className="flex justify-between items-center">
-            <div />
-
-            <div className="flex items-center justify-end gap-2 flex-1 w-full">
+          <div className="flex justify-between items-center px-2">
+            <div className="flex items-center gap-2">
               <Dropdown isOpen={isOpen} onOpenChange={onOpenChange}>
                 <DropdownTrigger>
                   <Button
                     variant="light"
                     radius="full"
-                    className="px-3 gap-2"
+                    className="px-2 gap-2"
                     startContent={<LucideComponent className="size-4" />}
                   >
                     {model}
@@ -162,7 +154,9 @@ export default function ChatInput({
                   )}
                 </DropdownMenu>
               </Dropdown>
+            </div>
 
+            <div className="flex items-center justify-end gap-2">
               <Button
                 isDisabled={!text.trim() || sending}
                 variant="flat"
