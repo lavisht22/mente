@@ -279,17 +279,14 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
   return (
     <div className="w-full h-full relative flex flex-col">
       <div className="w-full flex-1">
-        {messages?.map((message, index) => (
-          <Message
-            key={message.id}
-            message={message as MessageT}
-            loading={
-              sendMutation.isPending &&
-              messages &&
-              index === messages.length - 1
-            }
-          />
+        {messages?.map((message) => (
+          <Message key={message.id} message={message as MessageT} />
         ))}
+        {sendMutation.isPending && (
+          <div className="w-full max-w-2xl mx-auto p-4">
+            <Logo size={4} animation />
+          </div>
+        )}
         <div
           className={cn("h-8 w-full", { "h-40 md:h-48": style === "normal" })}
         />

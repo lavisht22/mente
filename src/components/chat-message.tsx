@@ -7,13 +7,11 @@ import Markdown from "react-markdown";
 import { rehypeInlineCodeProperty } from "react-shiki";
 import remarkGfm from "remark-gfm";
 import CodeBlock from "./code-block";
-import Logo from "./logo";
 
 export type MessageT = Tables<"messages"> & { data: ModelMessage };
 
 interface MessageProps {
   message: MessageT;
-  loading?: boolean;
 }
 
 function UserMessage({ message }: MessageProps) {
@@ -73,14 +71,11 @@ function UserMessage({ message }: MessageProps) {
   );
 }
 
-function AssistantMessage({ message, loading }: MessageProps) {
+function AssistantMessage({ message }: MessageProps) {
   if (typeof message.data.content === "string") {
     return (
-      <div className="flex gap-4 w-full overflow-hidden">
-        <Logo className="mt-1.5 shrink-0" size={4} animation={loading} />
-        <div className="prose">
-          <Markdown>{message.data.content}</Markdown>
-        </div>
+      <div className="gap-4 w-full overflow-hidden prose">
+        <Markdown>{message.data.content}</Markdown>
       </div>
     );
   }
@@ -92,20 +87,17 @@ function AssistantMessage({ message, loading }: MessageProps) {
           return (
             <div
               key={`${message.id}text${index}`}
-              className="flex gap-4 w-full overflow-hidden"
+              className="gap-4 w-full overflow-hidden prose"
             >
-              <Logo className="mt-1.5 shrink-0" size={4} animation={loading} />
-              <div className="prose overflow-hidden">
-                <Markdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeInlineCodeProperty]}
-                  components={{
-                    code: CodeBlock,
-                  }}
-                >
-                  {part.text}
-                </Markdown>
-              </div>
+              <Markdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeInlineCodeProperty]}
+                components={{
+                  code: CodeBlock,
+                }}
+              >
+                {part.text}
+              </Markdown>
             </div>
           );
         }
