@@ -76,7 +76,7 @@ function UserMessage({ message }: MessageProps) {
 function AssistantMessage({ message, loading }: MessageProps) {
   if (typeof message.data.content === "string") {
     return (
-      <div className="flex gap-4">
+      <div className="flex gap-4 w-full overflow-hidden">
         <Logo className="mt-1.5 shrink-0" size={4} animation={loading} />
         <div className="prose">
           <Markdown>{message.data.content}</Markdown>
@@ -90,9 +90,12 @@ function AssistantMessage({ message, loading }: MessageProps) {
       {message.data.content.map((part, index) => {
         if (part.type === "text") {
           return (
-            <div key={`${message.id}text${index}`} className="flex gap-4">
+            <div
+              key={`${message.id}text${index}`}
+              className="flex gap-4 w-full overflow-hidden"
+            >
               <Logo className="mt-1.5 shrink-0" size={4} animation={loading} />
-              <div className="prose">
+              <div className="prose overflow-hidden">
                 <Markdown
                   remarkPlugins={[remarkGfm]}
                   rehypePlugins={[rehypeInlineCodeProperty]}

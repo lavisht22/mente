@@ -89,7 +89,7 @@ export default function ChatInput({
   return (
     <div
       className={cn({
-        "fixed bottom-0 w-full left-0 right-0 mx-auto max-w-2xl md:px-4 md:pb-6":
+        "fixed bottom-0 w-full left-0 right-0 mx-auto max-w-2xl md:px-4 md:pb-6 bg-default-50":
           style === "normal",
         "w-full": style === "floating",
       })}

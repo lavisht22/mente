@@ -28,8 +28,12 @@ export default function CodeBlock({
   const code = String(children).trim();
 
   return !inline && match ? (
-    <div className="relative group/code">
-      <ShikiHighlighter theme="github-dark" language={match[1]}>
+    <div className="relative group/code w-full overflow-hidden">
+      <ShikiHighlighter
+        theme="github-dark"
+        language={match[1]}
+        className="w-full overflow-x-scroll"
+      >
         {code}
       </ShikiHighlighter>
       <div className="absolute bottom-0 right-0 dark invisible group-hover/code:visible">
