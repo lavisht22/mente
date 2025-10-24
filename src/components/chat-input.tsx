@@ -10,7 +10,13 @@ import {
   useDisclosure,
 } from "@heroui/react";
 
-import { LucideArrowUp, LucideComponent, LucideLightbulb } from "lucide-react";
+import {
+  LucideArrowUp,
+  LucideComponent,
+  LucideLightbulb,
+  LucidePaperclip,
+  LucideX,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 
@@ -51,9 +57,11 @@ export default function ChatInput({
   const [text, setText] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isPWA, setIsPWA] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
   const { isOpen, onOpenChange } = useDisclosure();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Detect PWA fullscreen mode
   useEffect(() => {
@@ -86,6 +94,19 @@ export default function ChatInput({
     [text, send, sending],
   );
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files || []);
+    setFiles((prev) => [...prev, ...selectedFiles]);
+    // Reset input value to allow selecting the same file again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <div
       className={cn({
@@ -106,6 +127,32 @@ export default function ChatInput({
             "pb-6 md:pb-4": isPWA && !isFocused,
           })}
         >
+          {files.length > 0 && (
+            <div className="flex flex-wrap gap-2 px-4 pt-4">
+              {files.map((file, index) => (
+                <div
+                  key={`${file.name}-${index}`}
+                  className="relative rounded-medium border-2 border-default-200"
+                >
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={file.name}
+                    className="w-16 h-16 object-cover rounded-medium"
+                  />
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    radius="full"
+                    variant="solid"
+                    className="absolute -top-1.5 -right-1.5 min-w-5 w-5 h-5"
+                    onPress={() => removeFile(index)}
+                  >
+                    <LucideX className="size-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
           <TextareaAutosize
             ref={textareaRef}
             placeholder="Ask anything..."
@@ -120,6 +167,22 @@ export default function ChatInput({
           />
           <div className="flex justify-between items-center px-2">
             <div className="flex items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+              <Button
+                variant="light"
+                radius="full"
+                isIconOnly
+                onPress={() => fileInputRef.current?.click()}
+              >
+                <LucidePaperclip className="size-4" />
+              </Button>
               <Dropdown isOpen={isOpen} onOpenChange={onOpenChange}>
                 <DropdownTrigger>
                   <Button
