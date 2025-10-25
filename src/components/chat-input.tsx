@@ -41,7 +41,11 @@ const MODELS = [
 
 interface ChatInputProps {
   style?: "floating" | "normal";
-  send: (text: string) => void;
+  send: (payload: {
+    text: string;
+    files: File[];
+    clear: () => void;
+  }) => void;
   sending: boolean;
   model: string;
   onModelChange: (value: string) => void;
@@ -80,18 +84,26 @@ export default function ChatInput({
     return () => mediaQuery.removeEventListener("change", checkPWA);
   }, []);
 
+  const clear = useCallback(() => {
+    setText("");
+    setFiles([]);
+  }, []);
+
+  const handleSend = useCallback(() => {
+    if (!text.trim() || sending) return;
+
+    send({ text, files, clear });
+  }, [text, files, sending, send, clear]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
 
-        if (text.trim() && !sending) {
-          send(text);
-          setText("");
-        }
+        handleSend();
       }
     },
-    [text, send, sending],
+    [handleSend],
   );
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,10 +236,7 @@ export default function ChatInput({
                 isDisabled={!text.trim() || sending}
                 variant="flat"
                 isLoading={sending}
-                onPress={() => {
-                  send(text);
-                  setText("");
-                }}
+                onPress={handleSend}
                 isIconOnly
                 radius="full"
               >

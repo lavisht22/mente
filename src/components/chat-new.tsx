@@ -1,9 +1,12 @@
 import supabase from "@/lib/supabase";
 import { useMutation } from "@tanstack/react-query";
-import type { UserModelMessage } from "ai";
+import type { FilePart, ImagePart, UserModelMessage } from "ai";
 import type { Json } from "db.types";
+import { customAlphabet } from "nanoid";
 import { useState } from "react";
 import ChatInput from "./chat-input";
+
+const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
 
 interface ChatProps {
   style?: "floating" | "normal";
@@ -14,7 +17,13 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
   const [model, setModel] = useState("gpt-5-chat");
 
   const createChatMutation = useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async (payload: {
+      text: string;
+      files: File[];
+      clear: () => void;
+    }) => {
+      const { text, files, clear } = payload;
+
       const { data: chat, error: chatError } = await supabase
         .from("chats")
         .insert({
@@ -27,9 +36,43 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
         throw chatError;
       }
 
+      let uploadedFiles: Array<ImagePart | FilePart> = [];
+
+      if (files) {
+        // Upload the files and get their paths
+        uploadedFiles = await Promise.all(
+          files.map(async (file) => {
+            const id = nanoid();
+
+            const { data, error } = await supabase.storage
+              .from("chats")
+              .upload(`${chat.id}/${id}-${file.name}`, file);
+
+            if (error) {
+              throw error;
+            }
+
+            if (file.type.startsWith("image/")) {
+              return {
+                type: "image",
+                image: data.path,
+              } as ImagePart;
+            }
+
+            return { type: "file", data: data.path } as FilePart;
+          }),
+        );
+      }
+
       const userMessage: UserModelMessage = {
         role: "user",
-        content,
+        content: [
+          ...uploadedFiles,
+          {
+            type: "text",
+            text,
+          },
+        ],
       };
 
       const { data: message, error: messageError } = await supabase
@@ -44,6 +87,8 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
       if (messageError) {
         throw messageError;
       }
+
+      clear();
 
       return { chat, message };
     },

@@ -5,16 +5,21 @@ import { addToast, cn } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   AssistantModelMessage,
+  FilePart,
+  ImagePart,
   TextStreamPart,
   Tool,
   UserModelMessage,
 } from "ai";
 import type { Json } from "db.types";
 import { stream } from "fetch-event-stream";
+import { customAlphabet } from "nanoid";
 import { useCallback, useEffect, useRef } from "react";
 import ChatInput from "./chat-input";
 import Message, { type MessageT } from "./chat-message";
 import Logo from "./logo";
+
+const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
 
 interface ChatProps {
   chatId: string;
@@ -191,11 +196,55 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
   }, [chatId, queryClient, scrollToBottom]);
 
   const sendMutation = useMutation({
-    mutationFn: async (content?: string) => {
-      if (content) {
+    mutationFn: async (payload?: {
+      text: string;
+      files: File[];
+      clear: () => void;
+    }) => {
+      if (payload) {
+        const { text, files, clear } = payload;
+
+        if (text.length === 0) {
+          return;
+        }
+
+        let uploadedFiles: Array<ImagePart | FilePart> = [];
+
+        if (files) {
+          // Upload the files and get their paths
+          uploadedFiles = await Promise.all(
+            files.map(async (file) => {
+              const id = nanoid();
+
+              const { data, error } = await supabase.storage
+                .from("chats")
+                .upload(`${chatId}/${id}-${file.name}`, file);
+
+              if (error) {
+                throw error;
+              }
+
+              if (file.type.startsWith("image/")) {
+                return {
+                  type: "image",
+                  image: data.path,
+                } as ImagePart;
+              }
+
+              return { type: "file", data: data.path } as FilePart;
+            }),
+          );
+        }
+
         const userMessage: UserModelMessage = {
           role: "user",
-          content,
+          content: [
+            ...uploadedFiles,
+            {
+              type: "text",
+              text,
+            },
+          ],
         };
 
         const { data: createdMessage, error: messageCreateError } =
@@ -215,12 +264,14 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
         queryClient.setQueryData(["chat_messages", chatId], (old) => {
           return [...((old as Array<unknown>) || []), createdMessage];
         });
-      }
 
-      // Always scroll to bottom when user sends a message
-      setTimeout(() => {
-        scrollToBottom();
-      }, 100);
+        clear();
+
+        // Always scroll to bottom when user sends a message
+        setTimeout(() => {
+          scrollToBottom();
+        }, 100);
+      }
 
       await continueChat();
     },
