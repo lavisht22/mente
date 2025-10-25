@@ -60,7 +60,11 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
               } as ImagePart;
             }
 
-            return { type: "file", data: data.path } as FilePart;
+            return {
+              type: "file",
+              data: data.path,
+              mediaType: attachment.type,
+            } as FilePart;
           }),
         );
       }

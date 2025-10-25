@@ -232,7 +232,11 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
                 } as ImagePart;
               }
 
-              return { type: "file", data: data.path } as FilePart;
+              return {
+                type: "file",
+                data: data.path,
+                mediaType: attachment.type,
+              } as FilePart;
             }),
           );
         }
