@@ -10,7 +10,7 @@ import {
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { FilePart, ImagePart, ModelMessage } from "ai";
 import type { Tables } from "db.types";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LucideFileText } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import { rehypeInlineCodeProperty } from "react-shiki";
@@ -32,6 +32,16 @@ function Preview({ attachment }: { attachment: ImagePart | FilePart }) {
         : (attachment.data as string),
     ),
   );
+
+  const fileName = useMemo(() => {
+    if (attachment.type === "image") {
+      const parts = (attachment.image as string).split("/");
+      return parts[parts.length - 1].split("-").slice(1).join("-");
+    }
+
+    const parts = (attachment.data as string).split("/");
+    return parts[parts.length - 1].split("-").slice(1).join("-");
+  }, [attachment]);
 
   if (isPending) {
     return (
@@ -57,7 +67,15 @@ function Preview({ attachment }: { attachment: ImagePart | FilePart }) {
     );
   }
 
-  return <div>{data}</div>;
+  return (
+    <Card className="w-full max-w-36 h-16 space-y-2 p-2">
+      <p className="text-sm line-clamp-1 font-medium">{fileName}</p>
+      <div className="flex gap-1 items-center">
+        <LucideFileText className="size-4" />
+        <p className="text-xs">{fileName.split(".").pop()?.toUpperCase()}</p>
+      </div>
+    </Card>
+  );
 }
 
 function UserMessage({ message }: MessageProps) {
@@ -99,9 +117,9 @@ function UserMessage({ message }: MessageProps) {
 
   return (
     <div className="flex justify-end">
-      <div className="bg-default-200/60 py-2 px-3 rounded-2xl rounded-tr-none max-w-lg relative flex flex-col">
+      <div>
         {attachments.length > 0 && (
-          <div className="mb-4 flex flex-wrap gap-2">
+          <div className="mb-2 flex justify-end flex-wrap gap-2">
             {attachments.map((attachment, index) => {
               return (
                 <Preview
@@ -113,7 +131,7 @@ function UserMessage({ message }: MessageProps) {
           </div>
         )}
 
-        <div className="flex">
+        <div className="bg-default-200/60 py-2 px-3 rounded-2xl rounded-tr-none max-w-lg relative flex">
           <p
             ref={textRef}
             className={cn("flex-1 whitespace-pre-wrap", {

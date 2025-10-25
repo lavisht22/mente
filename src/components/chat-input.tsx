@@ -54,7 +54,7 @@ function Preview({ attachment }: { attachment: File }) {
   }
 
   return (
-    <div className="w-full max-w-36 h-full space-y-2 rounded-large p-2">
+    <div className="w-full max-w-36 h-16 space-y-2 rounded-large p-2">
       <p className="text-sm line-clamp-1 font-medium">{attachment.name}</p>
       <div className="flex gap-1 items-center">
         <LucideFileText className="size-4" />
