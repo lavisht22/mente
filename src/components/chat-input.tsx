@@ -13,6 +13,7 @@ import {
 import {
   LucideArrowUp,
   LucideComponent,
+  LucideFileText,
   LucideLightbulb,
   LucidePaperclip,
   LucideX,
@@ -39,11 +40,37 @@ const MODELS = [
   },
 ];
 
+function Preview({ attachment }: { attachment: File }) {
+  const isImage = attachment.type.startsWith("image/");
+
+  if (isImage) {
+    return (
+      <img
+        src={URL.createObjectURL(attachment)}
+        alt={attachment.name}
+        className="w-16 h-16 object-cover rounded-medium"
+      />
+    );
+  }
+
+  return (
+    <div className="w-full max-w-36 h-full space-y-2 rounded-large p-2">
+      <p className="text-sm line-clamp-1 font-medium">{attachment.name}</p>
+      <div className="flex gap-1 items-center">
+        <LucideFileText className="size-4" />
+        <p className="text-xs">
+          {attachment.type.split("/").pop()?.toUpperCase()}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 interface ChatInputProps {
   style?: "floating" | "normal";
   send: (payload: {
     text: string;
-    files: File[];
+    attachments: File[];
     clear: () => void;
   }) => void;
   sending: boolean;
@@ -61,7 +88,7 @@ export default function ChatInput({
   const [text, setText] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isPWA, setIsPWA] = useState(false);
-  const [files, setFiles] = useState<File[]>([]);
+  const [attachments, setAttachments] = useState<File[]>([]);
   const { isOpen, onOpenChange } = useDisclosure();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -86,14 +113,14 @@ export default function ChatInput({
 
   const clear = useCallback(() => {
     setText("");
-    setFiles([]);
+    setAttachments([]);
   }, []);
 
   const handleSend = useCallback(() => {
     if (!text.trim() || sending) return;
 
-    send({ text, files, clear });
-  }, [text, files, sending, send, clear]);
+    send({ text, attachments, clear });
+  }, [text, attachments, sending, send, clear]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -108,7 +135,7 @@ export default function ChatInput({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
-    setFiles((prev) => [...prev, ...selectedFiles]);
+    setAttachments((prev) => [...prev, ...selectedFiles]);
     // Reset input value to allow selecting the same file again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -116,7 +143,7 @@ export default function ChatInput({
   };
 
   const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -139,18 +166,14 @@ export default function ChatInput({
             "pb-6 md:pb-4": isPWA && !isFocused,
           })}
         >
-          {files.length > 0 && (
+          {attachments.length > 0 && (
             <div className="flex flex-wrap gap-2 px-4 pt-4">
-              {files.map((file, index) => (
-                <div
-                  key={`${file.name}-${index}`}
-                  className="relative rounded-medium border-2 border-default-200"
+              {attachments.map((attachment, index) => (
+                <Card
+                  key={`${attachment.name}-${index}`}
+                  className="relative overflow-visible"
                 >
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={file.name}
-                    className="w-16 h-16 object-cover rounded-medium"
-                  />
+                  <Preview attachment={attachment} />
                   <Button
                     isIconOnly
                     size="sm"
@@ -161,7 +184,7 @@ export default function ChatInput({
                   >
                     <LucideX className="size-3" />
                   </Button>
-                </div>
+                </Card>
               ))}
             </div>
           )}
@@ -182,7 +205,7 @@ export default function ChatInput({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,application/pdf"
                 multiple
                 className="hidden"
                 onChange={handleFileSelect}

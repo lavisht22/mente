@@ -198,33 +198,33 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
   const sendMutation = useMutation({
     mutationFn: async (payload?: {
       text: string;
-      files: File[];
+      attachments: File[];
       clear: () => void;
     }) => {
       if (payload) {
-        const { text, files, clear } = payload;
+        const { text, attachments, clear } = payload;
 
         if (text.length === 0) {
           return;
         }
 
-        let uploadedFiles: Array<ImagePart | FilePart> = [];
+        let uploadedAttachments: Array<ImagePart | FilePart> = [];
 
-        if (files) {
+        if (attachments) {
           // Upload the files and get their paths
-          uploadedFiles = await Promise.all(
-            files.map(async (file) => {
+          uploadedAttachments = await Promise.all(
+            attachments.map(async (attachment) => {
               const id = nanoid();
 
               const { data, error } = await supabase.storage
                 .from("chats")
-                .upload(`${chatId}/${id}-${file.name}`, file);
+                .upload(`${chatId}/${id}-${attachment.name}`, attachment);
 
               if (error) {
                 throw error;
               }
 
-              if (file.type.startsWith("image/")) {
+              if (attachment.type.startsWith("image/")) {
                 return {
                   type: "image",
                   image: data.path,
@@ -239,7 +239,7 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
         const userMessage: UserModelMessage = {
           role: "user",
           content: [
-            ...uploadedFiles,
+            ...uploadedAttachments,
             {
               type: "text",
               text,

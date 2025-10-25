@@ -19,10 +19,10 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
   const createChatMutation = useMutation({
     mutationFn: async (payload: {
       text: string;
-      files: File[];
+      attachments: File[];
       clear: () => void;
     }) => {
-      const { text, files, clear } = payload;
+      const { text, attachments, clear } = payload;
 
       const { data: chat, error: chatError } = await supabase
         .from("chats")
@@ -36,23 +36,23 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
         throw chatError;
       }
 
-      let uploadedFiles: Array<ImagePart | FilePart> = [];
+      let uploadedAttachments: Array<ImagePart | FilePart> = [];
 
-      if (files) {
+      if (attachments) {
         // Upload the files and get their paths
-        uploadedFiles = await Promise.all(
-          files.map(async (file) => {
+        uploadedAttachments = await Promise.all(
+          attachments.map(async (attachment) => {
             const id = nanoid();
 
             const { data, error } = await supabase.storage
               .from("chats")
-              .upload(`${chat.id}/${id}-${file.name}`, file);
+              .upload(`${chat.id}/${id}-${attachment.name}`, attachment);
 
             if (error) {
               throw error;
             }
 
-            if (file.type.startsWith("image/")) {
+            if (attachment.type.startsWith("image/")) {
               return {
                 type: "image",
                 image: data.path,
@@ -67,7 +67,7 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
       const userMessage: UserModelMessage = {
         role: "user",
         content: [
-          ...uploadedFiles,
+          ...uploadedAttachments,
           {
             type: "text",
             text,
