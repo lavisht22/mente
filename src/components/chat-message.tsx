@@ -116,45 +116,43 @@ function UserMessage({ message }: MessageProps) {
   }, []);
 
   return (
-    <div className="flex justify-end">
-      <div>
-        {attachments.length > 0 && (
-          <div className="mb-2 flex justify-end flex-wrap gap-2">
-            {attachments.map((attachment, index) => {
-              return (
-                <Preview
-                  key={`${message.id}-attachment-${index}`}
-                  attachment={attachment}
-                />
-              );
-            })}
-          </div>
-        )}
-
-        <div className="bg-default-200/60 py-2 px-3 rounded-2xl rounded-tr-none max-w-lg relative flex">
-          <p
-            ref={textRef}
-            className={cn("flex-1 whitespace-pre-wrap", {
-              "line-clamp-5": !isExpanded,
-            })}
-          >
-            {text}
-          </p>
-          {isClamped && (
-            <Button
-              className="-mr-1"
-              isIconOnly
-              size="sm"
-              variant="light"
-              onPress={() => setIsExpanded(!isExpanded)}
-              aria-label={isExpanded ? "Collapse message" : "Expand message"}
-            >
-              <ChevronDown
-                className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+    <div className="flex flex-col items-end w-full ">
+      {attachments.length > 0 && (
+        <div className="mb-2 flex justify-end flex-wrap gap-2">
+          {attachments.map((attachment, index) => {
+            return (
+              <Preview
+                key={`${message.id}-attachment-${index}`}
+                attachment={attachment}
               />
-            </Button>
-          )}
+            );
+          })}
         </div>
+      )}
+
+      <div className="bg-default-200/60 py-2 px-3 rounded-2xl rounded-tr-none max-w-lg w-full flex">
+        <p
+          ref={textRef}
+          className={cn("flex-1 whitespace-pre-wrap w-full overflow-hidden", {
+            "line-clamp-5": !isExpanded,
+          })}
+        >
+          {text}
+        </p>
+        {isClamped && (
+          <Button
+            className="-mr-1 shrink-0"
+            isIconOnly
+            size="sm"
+            variant="light"
+            onPress={() => setIsExpanded(!isExpanded)}
+            aria-label={isExpanded ? "Collapse message" : "Expand message"}
+          >
+            <ChevronDown
+              className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+            />
+          </Button>
+        )}
       </div>
     </div>
   );
