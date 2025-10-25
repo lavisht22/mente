@@ -131,6 +131,9 @@ function Auth() {
 
       <Input
         size="lg"
+        type="email"
+        autoComplete="false"
+        autoCorrect="false"
         placeholder="abc@xyz.com"
         value={email}
         onValueChange={setEmail}
