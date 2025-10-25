@@ -1,7 +1,7 @@
 import { chatMessagesQuery, chatQuery } from "@/lib/queries";
 
 import supabase from "@/lib/supabase";
-import { addToast, cn } from "@heroui/react";
+import { addToast } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   AssistantModelMessage,
@@ -333,8 +333,8 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
   }
 
   return (
-    <div className="w-full h-full relative flex flex-col">
-      <div className="w-full flex-1">
+    <div className="h-full flex flex-col justify-between overflow-hidden">
+      <div className="flex-1 overflow-y-auto">
         {messages?.map((message) => (
           <Message key={message.id} message={message as MessageT} />
         ))}
@@ -343,9 +343,7 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
             <Logo size={4} animation />
           </div>
         )}
-        <div
-          className={cn("h-8 w-full", { "h-40 md:h-48": style === "normal" })}
-        />
+        <div className="h-8 w-full" />
         <div ref={bottomRef} />
       </div>
 

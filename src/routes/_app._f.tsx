@@ -23,8 +23,9 @@ function RouteComponent() {
   }, [isChatOpen]);
 
   return (
-    <div className={cn(isChatOpen && "md:pr-[28rem]")}>
+    <div className={cn("h-full", isChatOpen && "md:pr-[28rem]")}>
       <motion.div
+        className="h-full"
         layout
         transition={{
           duration: 0.5,

@@ -19,7 +19,7 @@ import {
   LucideSettings2,
   LucideX,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 
 const MODELS = [
@@ -88,29 +88,11 @@ export default function ChatInput({
 }: ChatInputProps) {
   const [text, setText] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-  const [isPWA, setIsPWA] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
   const { isOpen, onOpenChange } = useDisclosure();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Detect PWA fullscreen mode
-  useEffect(() => {
-    const checkPWA = () => {
-      const isStandalone =
-        window.matchMedia("(display-mode: standalone)").matches ||
-        (window.navigator as unknown as { standalone?: boolean }).standalone ===
-          true;
-      setIsPWA(isStandalone);
-    };
-
-    checkPWA();
-    const mediaQuery = window.matchMedia("(display-mode: standalone)");
-    mediaQuery.addEventListener("change", checkPWA);
-
-    return () => mediaQuery.removeEventListener("change", checkPWA);
-  }, []);
 
   const clear = useCallback(() => {
     setText("");
@@ -150,22 +132,24 @@ export default function ChatInput({
   return (
     <div
       className={cn({
-        "fixed bottom-0 w-full left-0 right-0 mx-auto max-w-2xl md:px-4 md:pb-6 bg-default-50":
+        "w-full mx-auto max-w-2xl md:px-4 md:pb-6 bg-default-50":
           style === "normal",
-        "w-full sticky bottom-0": style === "floating",
+        "w-full bottom-0": style === "floating",
       })}
     >
       <Card
         className={cn("h-full", {
           "rounded-b-none": style === "floating",
-
           "rounded-b-none md:rounded-b-large": style === "normal",
         })}
       >
         <CardBody
-          className={cn("gap-2 p-0 pb-2 md:pb-2", {
-            "pb-6 md:pb-2": isPWA && !isFocused,
-          })}
+          className={cn("gap-2 p-0 pb-2 md")}
+          style={{
+            paddingBottom: isFocused
+              ? "8px"
+              : "max(env(safe-area-inset-bottom), 8px)",
+          }}
         >
           {attachments.length > 0 && (
             <div className="flex flex-wrap gap-2 px-4 pt-4">

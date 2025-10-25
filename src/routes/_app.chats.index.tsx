@@ -23,11 +23,8 @@ function RouteComponent() {
   const { data: chats } = useSuspenseQuery(chatsQuery);
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      <div
-        id="header"
-        className="p-2 flex justify-between items-center gap-4 sticky top-0 z-10 bg-default-50"
-      >
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="p-1 flex justify-between items-center gap-4">
         <div className="flex items-center gap-0.5">
           <Button
             size="lg"
@@ -71,16 +68,14 @@ function RouteComponent() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden">
-        <ChatNew
-          setChatId={(id: string) => {
-            navigate({
-              to: `/chats/${id}`,
-              replace: true,
-            });
-          }}
-        />
-      </div>
+      <ChatNew
+        setChatId={(id: string) => {
+          navigate({
+            to: `/chats/${id}`,
+            replace: true,
+          });
+        }}
+      />
     </div>
   );
 }

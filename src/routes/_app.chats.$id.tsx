@@ -14,8 +14,8 @@ function RouteComponent() {
   const { data: chat } = useQuery(chatQuery(id));
 
   return (
-    <>
-      <div className="h-16 flex justify-between items-center gap-4 fixed top-0 left-0 right-0 z-10 bg-default-50">
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="p-1 flex justify-between items-center gap-4">
         <div className="flex items-center gap-0.5">
           <Button
             size="lg"
@@ -32,9 +32,8 @@ function RouteComponent() {
           )}
         </div>
       </div>
-      <div className="pt-16">
-        <Chat chatId={id} />
-      </div>
-    </>
+
+      <Chat chatId={id} />
+    </div>
   );
 }

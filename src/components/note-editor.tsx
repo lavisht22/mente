@@ -64,8 +64,6 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
     }
 
     const initEditor = async () => {
-      console.log("Initializing Crepe editor for item:", item.id);
-
       const crepe = new Crepe({
         root: editorRef.current,
         defaultValue: item.markdown || "",
@@ -143,7 +141,7 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
   };
 
   return (
-    <div className="space-y-4 max-w-3xl mx-auto">
+    <div className="space-y-4 w-full max-w-3xl mx-auto">
       <h1
         ref={titleRef}
         contentEditable

@@ -141,12 +141,9 @@ function RouteComponent() {
   };
 
   return (
-    <div>
-      <div
-        id="header"
-        className="p-2 flex justify-between items-center gap-4 sticky top-0 left-0 z-10 bg-default-50"
-      >
-        <div>
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="p-1 flex justify-between items-center gap-4">
+        <div className="flex items-center gap-0.5">
           <Button
             size="lg"
             isIconOnly
@@ -157,7 +154,7 @@ function RouteComponent() {
           </Button>
         </div>
 
-        <div className="flex-1 flex justify-end items-center gap-2">
+        <div className="flex flex-1 justify-end items-center gap-2">
           <Select
             variant="bordered"
             color="primary"
@@ -189,7 +186,8 @@ function RouteComponent() {
           </Dropdown>
         </div>
       </div>
-      <div className="p-8">
+
+      <div className="p-8 overflow-y-auto">
         {item?.type === "note" && <NoteEditor item={item} />}
       </div>
 

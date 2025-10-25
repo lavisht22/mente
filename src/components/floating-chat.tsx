@@ -82,7 +82,7 @@ export default function FloatingChat({
       <Card className="h-full overflow-hidden">
         <div className="p-2 flex justify-between items-center border-b border-default-200">
           <div className="pl-2">
-            <p className="text-sm">{currentChat?.name}</p>
+            <p className="text-sm line-clamp-1">{currentChat?.name}</p>
           </div>
           <div className="flex items-center">
             {currentChatId !== undefined && (

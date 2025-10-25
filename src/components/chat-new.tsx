@@ -103,8 +103,8 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
   });
 
   return (
-    <div className="h-full w-full relative flex flex-col">
-      <div className="flex-1 p-4 h-full w-full flex flex-col items-center justify-center pb-40">
+    <div className="h-full flex flex-col">
+      <div className="flex-1 p-4 h-full w-full flex flex-col items-center justify-center">
         <div className="text-center">
           <h3 className="text-2xl text-default-500">Start a new chat</h3>
           <p className="text-default-500">
