@@ -1,7 +1,7 @@
 import { chatMessagesQuery, chatQuery } from "@/lib/queries";
 
 import supabase from "@/lib/supabase";
-import { addToast } from "@heroui/react";
+import { Spinner, addToast } from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   AssistantModelMessage,
@@ -14,10 +14,9 @@ import type {
 import type { Json } from "db.types";
 import { stream } from "fetch-event-stream";
 import { customAlphabet } from "nanoid";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ChatInput from "./chat-input";
 import Message, { type MessageT } from "./chat-message";
-import Logo from "./logo";
 
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
 
@@ -37,6 +36,8 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const lastScrollPositionRef = useRef<number>(0);
   const hasUserScrolledUpRef = useRef<boolean>(false);
+
+  const [generating, setGenerating] = useState(false);
 
   // Track scroll position to update the ref
   useEffect(() => {
@@ -201,84 +202,97 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
       attachments: File[];
       clear: () => void;
     }) => {
-      if (payload) {
-        const { text, attachments, clear } = payload;
+      try {
+        if (payload) {
+          const { text, attachments, clear } = payload;
 
-        if (text.length === 0) {
-          return;
-        }
+          if (text.length === 0) {
+            return;
+          }
 
-        let uploadedAttachments: Array<ImagePart | FilePart> = [];
+          let uploadedAttachments: Array<ImagePart | FilePart> = [];
 
-        if (attachments) {
-          // Upload the files and get their paths
-          uploadedAttachments = await Promise.all(
-            attachments.map(async (attachment) => {
-              const id = nanoid();
+          if (attachments) {
+            // Upload the files and get their paths
+            uploadedAttachments = await Promise.all(
+              attachments.map(async (attachment) => {
+                const id = nanoid();
 
-              const { data, error } = await supabase.storage
-                .from("chats")
-                .upload(`${chatId}/${id}-${attachment.name}`, attachment);
+                const { data, error } = await supabase.storage
+                  .from("chats")
+                  .upload(`${chatId}/${id}-${attachment.name}`, attachment);
 
-              if (error) {
-                throw error;
-              }
+                if (error) {
+                  throw error;
+                }
 
-              if (attachment.type.startsWith("image/")) {
+                if (attachment.type.startsWith("image/")) {
+                  return {
+                    type: "image",
+                    image: data.path,
+                    mediaType: attachment.type,
+                  } as ImagePart;
+                }
+
                 return {
-                  type: "image",
-                  image: data.path,
+                  type: "file",
+                  data: data.path,
                   mediaType: attachment.type,
-                } as ImagePart;
-              }
+                } as FilePart;
+              }),
+            );
+          }
 
-              return {
-                type: "file",
-                data: data.path,
-                mediaType: attachment.type,
-              } as FilePart;
-            }),
-          );
+          const userMessage: UserModelMessage = {
+            role: "user",
+            content: [
+              ...uploadedAttachments,
+              {
+                type: "text",
+                text,
+              },
+            ],
+          };
+
+          const { data: createdMessage, error: messageCreateError } =
+            await supabase
+              .from("messages")
+              .insert({
+                chat_id: chatId,
+                data: userMessage as Json,
+              })
+              .select()
+              .single();
+
+          if (messageCreateError) {
+            throw messageCreateError;
+          }
+
+          queryClient.setQueryData(["chat_messages", chatId], (old) => {
+            return [...((old as Array<unknown>) || []), createdMessage];
+          });
+
+          clear();
+
+          // Always scroll to bottom when user sends a message
+          setTimeout(() => {
+            scrollToBottom();
+          }, 100);
         }
 
-        const userMessage: UserModelMessage = {
-          role: "user",
-          content: [
-            ...uploadedAttachments,
-            {
-              type: "text",
-              text,
-            },
-          ],
-        };
-
-        const { data: createdMessage, error: messageCreateError } =
-          await supabase
-            .from("messages")
-            .insert({
-              chat_id: chatId,
-              data: userMessage as Json,
-            })
-            .select()
-            .single();
-
-        if (messageCreateError) {
-          throw messageCreateError;
-        }
-
-        queryClient.setQueryData(["chat_messages", chatId], (old) => {
-          return [...((old as Array<unknown>) || []), createdMessage];
+        setGenerating(true);
+        await continueChat();
+      } catch (error) {
+        addToast({
+          title: "Error",
+          description:
+            "There was some error processing this request. Please try again.",
+          color: "danger",
         });
-
-        clear();
-
-        // Always scroll to bottom when user sends a message
-        setTimeout(() => {
-          scrollToBottom();
-        }, 100);
+        throw error;
+      } finally {
+        setGenerating(false);
       }
-
-      await continueChat();
     },
   });
 
@@ -306,6 +320,7 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
         description: "Failed to update model. Please try again.",
         color: "danger",
       });
+
       if (context?.previousChat) {
         queryClient.setQueryData(["chat", chatId], context.previousChat);
       }
@@ -327,7 +342,7 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
   if (messagesLoading || chatLoading) {
     return (
       <div className="h-full w-full flex items-center justify-center">
-        <Logo size={4} animation />
+        <Spinner variant="wave" />
       </div>
     );
   }
@@ -338,9 +353,9 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
         {messages?.map((message) => (
           <Message key={message.id} message={message as MessageT} />
         ))}
-        {sendMutation.isPending && (
+        {generating && (
           <div className="w-full max-w-2xl mx-auto p-4">
-            <Logo size={4} animation />
+            <Spinner variant="wave" />
           </div>
         )}
         <div className="h-8 w-full" />
