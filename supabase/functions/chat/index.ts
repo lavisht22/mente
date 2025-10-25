@@ -1,6 +1,15 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 
-import { jsonSchema, ModelMessage, stepCountIs, streamText, tool } from "ai";
+import {
+  type FilePart,
+  type ImagePart,
+  jsonSchema,
+  ModelMessage,
+  stepCountIs,
+  streamText,
+  type TextPart,
+  tool,
+} from "ai";
 import { createAzure } from "@ai-sdk/azure";
 import { createVertex } from "@ai-sdk/google-vertex/edge";
 import { createClient } from "@supabase/supabase-js";
@@ -110,6 +119,62 @@ Deno.serve(async (req) => {
 
   const messages = data.messages.reverse().map((m) => m.data as ModelMessage);
 
+  // Transform messages to convert Supabase storage paths to signed URLs
+  const transformedMessages = await Promise.all(
+    messages.map(async (message) => {
+      // Only process user messages with array content
+      if (
+        message.role === "user" &&
+        Array.isArray(message.content)
+      ) {
+        const transformedContent = await Promise.all(
+          message.content.map(async (part: TextPart | ImagePart | FilePart) => {
+            if (part.type === "image") {
+              const { data, error } = await supabase.storage
+                .from("chats")
+                .createSignedUrl(part.image, 3600);
+
+              if (error) {
+                throw error;
+              }
+
+              return {
+                ...part,
+                image: data.signedUrl,
+              };
+            }
+
+            if (part.type === "file") {
+              if (part.data.startsWith("chats/")) {
+                const { data, error } = await supabase.storage
+                  .from("chats")
+                  .createSignedUrl(part.data, 3600);
+
+                if (error) {
+                  throw error;
+                }
+
+                return {
+                  ...part,
+                  data: data.signedUrl,
+                };
+              }
+            }
+
+            return part;
+          }),
+        );
+
+        return {
+          ...message,
+          content: transformedContent,
+        };
+      }
+
+      return message;
+    }),
+  );
+
   const body = new ReadableStream({
     async start(controller) {
       const result = await streamText({
@@ -127,7 +192,7 @@ Deno.serve(async (req) => {
               },
               required: ["location"],
             }),
-            execute: async ({ location }) => ({
+            execute: ({ location }: { location: string }) => ({
               location,
               temperature: 72 + Math.floor(Math.random() * 21) - 10,
             }),
@@ -138,7 +203,7 @@ Deno.serve(async (req) => {
             role: "system",
             content: "You are a helpful assistant. Always output in markdown.",
           },
-          ...messages,
+          ...transformedMessages,
         ],
         stopWhen: stepCountIs(10),
       });
