@@ -6,6 +6,7 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
+  addToast,
   cn,
   useDisclosure,
 } from "@heroui/react";
@@ -118,7 +119,72 @@ export default function ChatInput({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
-    setAttachments((prev) => [...prev, ...selectedFiles]);
+    const maxDocumentSize = 7 * 1024 * 1024; // 7MB in bytes for documents
+    const maxImages = 50;
+    const maxDocuments = 10;
+
+    // Categorize existing attachments
+    const existingImages = attachments.filter((file) =>
+      file.type.startsWith("image/"),
+    );
+    const existingDocuments = attachments.filter(
+      (file) => !file.type.startsWith("image/"),
+    );
+
+    // Filter and validate files
+    const validFiles: File[] = [];
+
+    for (const file of selectedFiles) {
+      const isImage = file.type.startsWith("image/");
+      const isDocument =
+        file.type === "application/pdf" || file.type === "text/plain";
+
+      if (!isImage && !isDocument) {
+        continue;
+      }
+
+      // Check document size limit (7MB for PDFs and text files)
+      if (isDocument && file.size > maxDocumentSize) {
+        addToast({
+          title: "File too large",
+          description: `${file.name} exceeds the 7MB limit for documents.`,
+          color: "danger",
+        });
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    // Categorize new valid files
+    const newImages = validFiles.filter((file) =>
+      file.type.startsWith("image/"),
+    );
+    const newDocuments = validFiles.filter(
+      (file) => !file.type.startsWith("image/"),
+    );
+
+    // Check image count limit
+    if (existingImages.length + newImages.length > maxImages) {
+      addToast({
+        title: "Too many images",
+        description: `You can only attach up to ${maxImages} images at a time.`,
+        color: "danger",
+      });
+      return;
+    }
+
+    // Check document count limit
+    if (existingDocuments.length + newDocuments.length > maxDocuments) {
+      addToast({
+        title: "Too many documents",
+        description: `You can only attach up to ${maxDocuments} documents (PDFs and text files) at a time.`,
+        color: "danger",
+      });
+      return;
+    }
+
+    setAttachments((prev) => [...prev, ...validFiles]);
     // Reset input value to allow selecting the same file again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -190,7 +256,7 @@ export default function ChatInput({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*,application/pdf"
+                accept="image/*,application/pdf,text/plain"
                 multiple
                 className="hidden"
                 onChange={handleFileSelect}
