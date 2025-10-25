@@ -94,3 +94,18 @@ export const chatMessagesQuery = (id: string) =>
         },
         enabled: !!id,
     });
+
+export const signedURLQuery = (bucket: string, path: string) =>
+    queryOptions({
+        queryKey: ["signed_url", path],
+        queryFn: async () => {
+            const { data, error } = await supabase.storage
+                .from(bucket)
+                .createSignedUrl(path, 300); // URL valid for 300 seconds
+
+            if (error) throw error;
+
+            return data.signedUrl;
+        },
+        enabled: !!path,
+    });
