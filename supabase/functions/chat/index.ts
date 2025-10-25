@@ -145,20 +145,18 @@ Deno.serve(async (req) => {
             }
 
             if (part.type === "file") {
-              if (part.data.startsWith("chats/")) {
-                const { data, error } = await supabase.storage
-                  .from("chats")
-                  .createSignedUrl(part.data, 3600);
+              const { data, error } = await supabase.storage
+                .from("chats")
+                .createSignedUrl(part.data, 3600);
 
-                if (error) {
-                  throw error;
-                }
-
-                return {
-                  ...part,
-                  data: data.signedUrl,
-                };
+              if (error) {
+                throw error;
               }
+
+              return {
+                ...part,
+                data: data.signedUrl,
+              };
             }
 
             return part;
@@ -173,6 +171,11 @@ Deno.serve(async (req) => {
 
       return message;
     }),
+  );
+
+  console.log(
+    "Transformed Messages:",
+    JSON.stringify(transformedMessages, null, 2),
   );
 
   const body = new ReadableStream({

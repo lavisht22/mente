@@ -56,6 +56,7 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
               return {
                 type: "image",
                 image: data.path,
+                mediaType: attachment.type,
               } as ImagePart;
             }
 
