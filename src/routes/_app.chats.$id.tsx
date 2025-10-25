@@ -14,11 +14,8 @@ function RouteComponent() {
   const { data: chat } = useQuery(chatQuery(id));
 
   return (
-    <div>
-      <div
-        id="header"
-        className="p-2 flex justify-between items-center gap-4 sticky top-0 z-10 bg-default-50"
-      >
+    <>
+      <div className="h-16 flex justify-between items-center gap-4 fixed top-0 left-0 right-0 z-10 bg-default-50">
         <div className="flex items-center gap-0.5">
           <Button
             size="lg"
@@ -29,14 +26,15 @@ function RouteComponent() {
             <LucideArrowLeft className="size-4" />
           </Button>
           {chat?.name ? (
-            <p>{chat?.name}</p>
+            <p className="line-clamp-1">{chat?.name}</p>
           ) : (
             <Skeleton className="w-32 h-6 rounded-lg" />
           )}
         </div>
       </div>
-
-      <Chat chatId={id} />
-    </div>
+      <div className="pt-16">
+        <Chat chatId={id} />
+      </div>
+    </>
   );
 }

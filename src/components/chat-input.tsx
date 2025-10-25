@@ -16,6 +16,7 @@ import {
   LucideFileText,
   LucideLightbulb,
   LucidePaperclip,
+  LucideSettings2,
   LucideX,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -163,7 +164,7 @@ export default function ChatInput({
       >
         <CardBody
           className={cn("gap-2 p-0 pb-2 md:pb-2", {
-            "pb-6 md:pb-4": isPWA && !isFocused,
+            "pb-6 md:pb-2": isPWA && !isFocused,
           })}
         >
           {attachments.length > 0 && (
@@ -201,7 +202,7 @@ export default function ChatInput({
             onBlur={() => setIsFocused(false)}
           />
           <div className="flex justify-between items-center px-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -217,6 +218,16 @@ export default function ChatInput({
                 onPress={() => fileInputRef.current?.click()}
               >
                 <LucidePaperclip className="size-4" />
+              </Button>
+
+              <Button
+                variant="light"
+                radius="full"
+                isIconOnly
+                isDisabled
+                // onPress={() => fileInputRef.current?.click()}
+              >
+                <LucideSettings2 className="size-4" />
               </Button>
               <Dropdown isOpen={isOpen} onOpenChange={onOpenChange}>
                 <DropdownTrigger>
