@@ -4,8 +4,10 @@ import {
   Avatar,
   Button,
   Divider,
-  Listbox,
-  ListboxItem,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -24,10 +26,6 @@ function AddUsers({
 }: { existing: string[]; space_id: string }) {
   const queryClient = useQueryClient();
   const { data, isLoading, isError } = useQuery(usersQuery);
-
-  if (isLoading || isError || !data) {
-    return null;
-  }
 
   const addUserMutation = useMutation({
     mutationFn: async (user_id: string) => {
@@ -51,6 +49,10 @@ function AddUsers({
     },
   });
 
+  if (isLoading || isError || !data) {
+    return null;
+  }
+
   return (
     <div className="flex flex-col gap-2 w-full">
       {data
@@ -63,7 +65,7 @@ function AddUsers({
             startContent={
               <Avatar
                 size="sm"
-                src={`https://api.dicebear.com/9.x/glass/svg?seed=${user.user_id}`}
+                src={`https://api.dicebear.com/9.x/glass/svg?seed=${user.id}`}
                 fallback="?"
               />
             }
@@ -89,7 +91,37 @@ function AddUsers({
 export default function SpaceMembersDialog({
   space_id,
 }: SpaceMembersDialogProps) {
+  const queryClient = useQueryClient();
   const { data, isLoading, isError } = useQuery(spaceUsersQuery(space_id));
+
+  const updateUserRoleMutation = useMutation({
+    mutationFn: async ({
+      user_id,
+      role,
+    }: {
+      user_id: string;
+      role: "admin" | "writer" | "reader";
+    }) => {
+      const { error } = await supabase
+        .from("space_user")
+        .update({ role })
+        .eq("space_id", space_id)
+        .eq("user_id", user_id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      // Invalidate space users query to refetch updated roles
+      queryClient.invalidateQueries(spaceUsersQuery(space_id));
+    },
+    onError: () => {
+      addToast({
+        title: "Error",
+        description: "Failed to update user role.",
+        color: "danger",
+      });
+    },
+  });
 
   if (isLoading || isError || !data) {
     return null;
@@ -103,8 +135,8 @@ export default function SpaceMembersDialog({
       <PopoverContent className="p-4 min-w-96 space-y-4">
         <div className="flex flex-col gap-2 w-full">
           {data.map((spaceUser) => (
-            <Popover key={spaceUser.user_id} placement="bottom-end">
-              <PopoverTrigger>
+            <Dropdown key={spaceUser.user_id} placement="bottom-end">
+              <DropdownTrigger>
                 <Button
                   className="px-2 h-12"
                   variant="light"
@@ -130,21 +162,43 @@ export default function SpaceMembersDialog({
                     </p>
                   </div>
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="p-2">
-                <Listbox>
-                  <ListboxItem
-                    title="Admin"
-                    description="Read, create, edit, and add other members"
-                  />
-                  <ListboxItem
-                    title="Writer"
-                    description="Read, create and edit access"
-                  />
-                  <ListboxItem title="Reader" description="Read only access" />
-                </Listbox>
-              </PopoverContent>
-            </Popover>
+              </DropdownTrigger>
+              <DropdownMenu className="p-2">
+                <DropdownItem
+                  key="admin"
+                  title="Admin"
+                  description="Read, create, edit, and add other members"
+                  onPress={() =>
+                    updateUserRoleMutation.mutate({
+                      user_id: spaceUser.user_id,
+                      role: "admin",
+                    })
+                  }
+                />
+                <DropdownItem
+                  key="writer"
+                  title="Writer"
+                  description="Read, create and edit access"
+                  onPress={() =>
+                    updateUserRoleMutation.mutate({
+                      user_id: spaceUser.user_id,
+                      role: "writer",
+                    })
+                  }
+                />
+                <DropdownItem
+                  key="reader"
+                  title="Reader"
+                  description="Read only access"
+                  onPress={() =>
+                    updateUserRoleMutation.mutate({
+                      user_id: spaceUser.user_id,
+                      role: "reader",
+                    })
+                  }
+                />
+              </DropdownMenu>
+            </Dropdown>
           ))}
         </div>
         <Divider />
