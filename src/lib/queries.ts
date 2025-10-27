@@ -125,3 +125,17 @@ export const spaceUsersQuery = (spaceId: string) =>
         },
         enabled: !!spaceId,
     });
+
+export const usersQuery = queryOptions({
+    queryKey: ["profiles"],
+    queryFn: async () => {
+        const { data, error } = await supabase
+            .from("users")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        return data;
+    },
+});

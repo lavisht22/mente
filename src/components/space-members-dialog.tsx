@@ -1,18 +1,89 @@
-import { spaceUsersQuery } from "@/lib/queries";
+import { spaceUsersQuery, usersQuery } from "@/lib/queries";
+import supabase from "@/lib/supabase";
 import {
   Avatar,
   Button,
+  Divider,
   Listbox,
   ListboxItem,
   Popover,
   PopoverContent,
   PopoverTrigger,
+  addToast,
 } from "@heroui/react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LucideChevronDown } from "lucide-react";
 
 interface SpaceMembersDialogProps {
   space_id: string;
+}
+
+function AddUsers({
+  existing,
+  space_id,
+}: { existing: string[]; space_id: string }) {
+  const queryClient = useQueryClient();
+  const { data, isLoading, isError } = useQuery(usersQuery);
+
+  if (isLoading || isError || !data) {
+    return null;
+  }
+
+  const addUserMutation = useMutation({
+    mutationFn: async (user_id: string) => {
+      const { error } = await supabase.from("space_user").insert({
+        space_id,
+        user_id,
+        role: "reader",
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(spaceUsersQuery(space_id));
+    },
+    onError: () => {
+      addToast({
+        title: "Error",
+        description: "Failed to add user to space.",
+        color: "danger",
+      });
+    },
+  });
+
+  return (
+    <div className="flex flex-col gap-2 w-full">
+      {data
+        .filter((user) => !existing.includes(user.id))
+        .map((user) => (
+          <Button
+            key={user.id}
+            className="px-2 h-12"
+            variant="light"
+            startContent={
+              <Avatar
+                size="sm"
+                src={`https://api.dicebear.com/9.x/glass/svg?seed=${user.user_id}`}
+                fallback="?"
+              />
+            }
+            endContent={
+              <div className="text-default-500 flex items-center bg-default-100 px-2 py-1 rounded-medium">
+                <p className="text-xs">ADD</p>
+              </div>
+            }
+            onPress={() => addUserMutation.mutate(user.id)}
+            isDisabled={addUserMutation.isPending}
+          >
+            <div className="flex-1">
+              <p className="text-left text-base">
+                {user.name || "Unknown User"}
+              </p>
+            </div>
+          </Button>
+        ))}
+    </div>
+  );
 }
 
 export default function SpaceMembersDialog({
@@ -29,13 +100,13 @@ export default function SpaceMembersDialog({
       <PopoverTrigger>
         <Button variant="light">Share</Button>
       </PopoverTrigger>
-      <PopoverContent className="p-4 min-w-72">
+      <PopoverContent className="p-4 min-w-96 space-y-4">
         <div className="flex flex-col gap-2 w-full">
           {data.map((spaceUser) => (
             <Popover key={spaceUser.user_id} placement="bottom-end">
               <PopoverTrigger>
                 <Button
-                  className="px-2"
+                  className="px-2 h-12"
                   variant="light"
                   startContent={
                     <Avatar
@@ -45,11 +116,11 @@ export default function SpaceMembersDialog({
                     />
                   }
                   endContent={
-                    <div className="text-default-500 flex items-center">
+                    <div className="text-default-500 flex items-center bg-default-100 px-2 py-1 rounded-medium">
                       <p className="text-xs text-default-500">
                         {spaceUser.role.toUpperCase()}
                       </p>
-                      <LucideChevronDown className="size-3" />
+                      <LucideChevronDown className="size-4" />
                     </div>
                   }
                 >
@@ -76,6 +147,8 @@ export default function SpaceMembersDialog({
             </Popover>
           ))}
         </div>
+        <Divider />
+        <AddUsers space_id={space_id} existing={data.map((su) => su.user_id)} />
       </PopoverContent>
     </Popover>
   );
