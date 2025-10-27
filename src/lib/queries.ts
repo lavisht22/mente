@@ -109,3 +109,19 @@ export const signedURLQuery = (bucket: string, path: string) =>
         },
         enabled: !!path,
     });
+
+export const spaceUsersQuery = (spaceId: string) =>
+    queryOptions({
+        queryKey: ["space_users", spaceId],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from("space_user")
+                .select("*, users(name)")
+                .eq("space_id", spaceId);
+
+            if (error) throw error;
+
+            return data;
+        },
+        enabled: !!spaceId,
+    });

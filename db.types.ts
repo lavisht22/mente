@@ -135,6 +135,42 @@ export type Database = {
           },
         ]
       }
+      space_user: {
+        Row: {
+          created_at: string
+          role: Database["public"]["Enums"]["space_user_role"]
+          space_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          role?: Database["public"]["Enums"]["space_user_role"]
+          space_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          role?: Database["public"]["Enums"]["space_user_role"]
+          space_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "space_user_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_user_user_id_fkey1"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spaces: {
         Row: {
           created_at: string
@@ -156,6 +192,24 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -169,9 +223,11 @@ export type Database = {
         Args: { p_chat_id: string; p_user_id: string }
         Returns: boolean
       }
+      is_space_member: { Args: { sid: string; uid: string }; Returns: boolean }
     }
     Enums: {
       item_type: "note"
+      space_user_role: "admin" | "writer" | "reader"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -300,6 +356,7 @@ export const Constants = {
   public: {
     Enums: {
       item_type: ["note"],
+      space_user_role: ["admin", "writer", "reader"],
     },
   },
 } as const
