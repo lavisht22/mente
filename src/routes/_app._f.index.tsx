@@ -29,10 +29,10 @@ function RouteComponent() {
   }, []);
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-4 p-8">
+    <div className="w-full flex flex-col">
+      <div className="flex items-center gap-4 p-6">
         <div className="flex-1">
-          <h1 className="text-4xl">{getGreeting()}</h1>
+          <h1 className="text-xl md:text-2xl lg:text-4xl">{getGreeting()}!</h1>
         </div>
         <div>
           <NewDropdown
@@ -45,18 +45,18 @@ function RouteComponent() {
         </div>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium ml-8">Recent Items</h3>
-        <div className="flex gap-4 w-full overflow-x-auto p-8 -mt-8 scrollbar-hide">
+      <div className="">
+        <h3 className="text-lg font-medium ml-6">Recent Items</h3>
+        <div className="flex gap-4 w-full overflow-x-auto p-6 -mt-2 scrollbar-hide">
           {items?.map((item) => (
             <Item key={item.id} {...item} />
           ))}
         </div>
       </div>
 
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium ml-8">Recent Spaces</h3>
-        <div className="flex gap-4 w-full overflow-x-auto p-8 -mt-8 scrollbar-hide">
+      <div className="">
+        <h3 className="text-lg font-medium ml-6">Recent Spaces</h3>
+        <div className="flex gap-4 w-full overflow-x-auto p-6 -mt-2 scrollbar-hide">
           {spaces?.map((space) => (
             <Space key={space.id} {...space} />
           ))}
