@@ -116,7 +116,7 @@ function UserMessage({ message }: MessageProps) {
   }, []);
 
   return (
-    <div className="flex flex-col items-end w-full ">
+    <div className="flex flex-col items-end w-full">
       {attachments.length > 0 && (
         <div className="mb-2 flex justify-end flex-wrap gap-2">
           {attachments.map((attachment, index) => {
@@ -130,7 +130,7 @@ function UserMessage({ message }: MessageProps) {
         </div>
       )}
 
-      <div className="bg-default-200/60 py-2 px-3 rounded-2xl rounded-tr-none max-w-lg w-full flex">
+      <div className="bg-default-200/60 py-2 px-3 rounded-2xl rounded-tr-none flex max-w-[calc(min(100dvw,_32rem)_-_3rem)]">
         <p
           ref={textRef}
           className={cn("flex-1 whitespace-pre-wrap w-full overflow-hidden", {
@@ -226,7 +226,7 @@ function AssistantMessage({ message }: MessageProps) {
 export default function Message({ message, ...props }: MessageProps) {
   if (message.data.role === "user") {
     return (
-      <div className="w-full max-w-2xl mx-auto p-4">
+      <div className="w-full max-w-2xl mx-auto p-6">
         <UserMessage message={message} {...props} />
       </div>
     );
@@ -234,7 +234,7 @@ export default function Message({ message, ...props }: MessageProps) {
 
   if (message.data.role === "assistant") {
     return (
-      <div className="w-full max-w-2xl mx-auto p-4">
+      <div className="w-full max-w-2xl mx-auto p-6">
         <AssistantMessage message={message} {...props} />
       </div>
     );
