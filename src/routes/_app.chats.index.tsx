@@ -69,6 +69,7 @@ function RouteComponent() {
       </div>
 
       <ChatNew
+        spaceId=""
         setChatId={(id: string) => {
           navigate({
             to: `/chats/${id}`,

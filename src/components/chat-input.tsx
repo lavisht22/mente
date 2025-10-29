@@ -1,3 +1,4 @@
+import { spaceQuery } from "@/lib/queries";
 import {
   Button,
   Card,
@@ -6,15 +7,18 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
+  Skeleton,
   addToast,
   cn,
   useDisclosure,
 } from "@heroui/react";
+import { useQuery } from "@tanstack/react-query";
 
 import {
   LucideArrowUp,
   LucideComponent,
   LucideFileText,
+  LucideLayers,
   LucideLightbulb,
   LucidePaperclip,
   LucideSettings2,
@@ -41,6 +45,26 @@ const MODELS = [
     thinking: true,
   },
 ];
+
+function SpaceName({ spaceId }: { spaceId: string }) {
+  const { data: space } = useQuery(spaceQuery(spaceId));
+
+  if (!space) {
+    return <Skeleton className="w-24 h-6 rounded-medium" />;
+  }
+
+  return (
+    <Button
+      size="sm"
+      variant="light"
+      startContent={<LucideLayers className="size-3" />}
+      disableAnimation
+      disableRipple
+    >
+      local
+    </Button>
+  );
+}
 
 function Preview({ attachment }: { attachment: File }) {
   const isImage = attachment.type.startsWith("image/");
@@ -212,16 +236,19 @@ export default function ChatInput({
         })}
       >
         <CardBody
-          className={cn("gap-2 p-0 pb-2 md")}
+          className={cn("p-0 pb-2")}
           style={{
             paddingBottom: isFocused
               ? "8px"
               : "max(env(safe-area-inset-bottom), 8px)",
           }}
         >
-          <p>{spaceId}</p>
+          <div className="flex justify-between items-center px-2 pt-2">
+            <div />
+            <SpaceName spaceId={spaceId} />
+          </div>
           {attachments.length > 0 && (
-            <div className="flex flex-wrap gap-2 px-4 pt-4">
+            <div className="flex flex-wrap gap-2 px-4 py-2">
               {attachments.map((attachment, index) => (
                 <Card
                   key={`${attachment.name}-${index}`}
@@ -245,7 +272,7 @@ export default function ChatInput({
           <TextareaAutosize
             ref={textareaRef}
             placeholder="Ask anything..."
-            className="outline-none resize-none bg-transparent text-base px-4 pt-4"
+            className="outline-none resize-none bg-transparent text-base px-4 py-2"
             value={text}
             minRows={2}
             maxRows={10}
@@ -273,13 +300,7 @@ export default function ChatInput({
                 <LucidePaperclip className="size-4" />
               </Button>
 
-              <Button
-                variant="light"
-                radius="full"
-                isIconOnly
-                isDisabled
-                // onPress={() => fileInputRef.current?.click()}
-              >
+              <Button variant="light" radius="full" isIconOnly isDisabled>
                 <LucideSettings2 className="size-4" />
               </Button>
               <Dropdown isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -321,7 +342,7 @@ export default function ChatInput({
             <div className="flex items-center justify-end gap-2">
               <Button
                 isDisabled={!text.trim() || sending}
-                variant="flat"
+                color="primary"
                 isLoading={sending}
                 onPress={handleSend}
                 isIconOnly
