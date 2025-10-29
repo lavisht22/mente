@@ -8,7 +8,7 @@ import {
   DropdownTrigger,
 } from "@heroui/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 import {
@@ -35,6 +35,7 @@ export default function FloatingChat({
   onOpen,
   onClose,
 }: FloatingChatProps) {
+  const navigate = useNavigate();
   const { data: chats } = useSuspenseQuery(chatsQuery);
 
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(
@@ -125,15 +126,27 @@ export default function FloatingChat({
               </DropdownMenu>
             </Dropdown>
             <div className="w-[1px] h-4 mx-1 bg-default-300 " />
+
             <Button
               size="sm"
-              as={Link}
-              to={currentChatId ? `/chats/${currentChatId}` : "/chats"}
               isIconOnly
               variant="light"
+              onPress={() => {
+                if (currentChatId) {
+                  navigate({
+                    to: `/chats/${currentChatId}`,
+                  });
+                } else {
+                  navigate({
+                    to: "/chats",
+                    search: { spaceId },
+                  });
+                }
+              }}
             >
               <LucideMaximize2 className="size-4" />
             </Button>
+
             <Button size="sm" isIconOnly variant="light" onPress={onClose}>
               <LucideX className="size-4" />
             </Button>
