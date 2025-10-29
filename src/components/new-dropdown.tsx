@@ -39,8 +39,8 @@ export default function NewDropdown({
 
       if (createdNote) {
         navigate({
-          to: "/items/$id",
-          params: { id: createdNote.id },
+          to: "/spaces/$spaceId/items/$itemId",
+          params: { itemId: createdNote.id, spaceId: spaceId },
         });
       }
     },
