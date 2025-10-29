@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback } from "react";
 
-export const Route = createFileRoute("/_app/_f/")({
+export const Route = createFileRoute("/_app/")({
   component: RouteComponent,
 });
 

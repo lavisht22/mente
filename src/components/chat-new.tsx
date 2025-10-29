@@ -9,11 +9,16 @@ import ChatInput from "./chat-input";
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
 
 interface ChatProps {
+  spaceId: string;
   style?: "floating" | "normal";
   setChatId: (id: string) => void;
 }
 
-export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
+export default function ChatNew({
+  spaceId,
+  style = "normal",
+  setChatId,
+}: ChatProps) {
   const [model, setModel] = useState("gpt-5-chat");
 
   const createChatMutation = useMutation({
@@ -28,6 +33,7 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
         .from("chats")
         .insert({
           model,
+          space_id: spaceId,
         })
         .select()
         .single();
@@ -114,6 +120,7 @@ export default function ChatNew({ style = "normal", setChatId }: ChatProps) {
       </div>
 
       <ChatInput
+        spaceId={spaceId}
         style={style}
         send={createChatMutation.mutate}
         sending={createChatMutation.isPending}

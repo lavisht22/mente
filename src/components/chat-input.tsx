@@ -69,6 +69,7 @@ function Preview({ attachment }: { attachment: File }) {
 }
 
 interface ChatInputProps {
+  spaceId: string;
   style?: "floating" | "normal";
   send: (payload: {
     text: string;
@@ -81,6 +82,7 @@ interface ChatInputProps {
 }
 
 export default function ChatInput({
+  spaceId,
   style,
   send,
   sending,
@@ -217,6 +219,7 @@ export default function ChatInput({
               : "max(env(safe-area-inset-bottom), 8px)",
           }}
         >
+          <p>{spaceId}</p>
           {attachments.length > 0 && (
             <div className="flex flex-wrap gap-2 px-4 pt-4">
               {attachments.map((attachment, index) => (

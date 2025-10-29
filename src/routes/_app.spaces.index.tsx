@@ -1,7 +1,7 @@
 import Nav from "@/components/nav";
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_app/_f/spaces/")({
+export const Route = createFileRoute("/_app/spaces/")({
   component: SpacesComponent,
 });
 

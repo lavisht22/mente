@@ -21,11 +21,12 @@ import Message, { type MessageT } from "./chat-message";
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
 
 interface ChatProps {
+  spaceId: string;
   chatId: string;
   style?: "floating" | "normal";
 }
 
-export default function Chat({ chatId, style = "normal" }: ChatProps) {
+export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
   const queryClient = useQueryClient();
 
   const { data: chat, isLoading: chatLoading } = useQuery(chatQuery(chatId));
@@ -363,6 +364,7 @@ export default function Chat({ chatId, style = "normal" }: ChatProps) {
       </div>
 
       <ChatInput
+        spaceId={spaceId}
         style={style}
         send={sendMutation.mutate}
         sending={sendMutation.isPending}

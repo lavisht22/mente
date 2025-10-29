@@ -28,7 +28,7 @@ import {
   LucideTrash,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_app/_f/items/$id")({
+export const Route = createFileRoute("/_app/items/$id")({
   component: RouteComponent,
 });
 

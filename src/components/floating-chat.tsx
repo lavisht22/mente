@@ -23,12 +23,14 @@ import ChatNew from "./chat-new";
 import Logo from "./logo";
 
 interface FloatingChatProps {
+  spaceId: string;
   isOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
 }
 
 export default function FloatingChat({
+  spaceId,
   isOpen,
   onOpen,
   onClose,
@@ -139,9 +141,13 @@ export default function FloatingChat({
         </div>
         <div className="h-full overflow-y-auto w-full overflow-x-hidden">
           {currentChatId ? (
-            <Chat style="floating" chatId={currentChatId} />
+            <Chat spaceId={spaceId} style="floating" chatId={currentChatId} />
           ) : (
-            <ChatNew style="floating" setChatId={setCurrentChatId} />
+            <ChatNew
+              spaceId={spaceId}
+              style="floating"
+              setChatId={setCurrentChatId}
+            />
           )}
         </div>
       </Card>
