@@ -142,8 +142,8 @@ function RouteComponent() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="p-1 flex justify-between items-center gap-4">
-        <div className="flex items-center gap-0.5">
+      <div className="h-16 w-full px-2 flex justify-between items-center gap-4">
+        <div>
           <Button
             size="lg"
             isIconOnly
@@ -187,7 +187,7 @@ function RouteComponent() {
         </div>
       </div>
 
-      <div className="p-8 overflow-y-auto">
+      <div className="p-8 flex-1 overflow-y-auto">
         {item?.type === "note" && <NoteEditor item={item} />}
       </div>
 

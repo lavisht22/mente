@@ -15,7 +15,7 @@ function RouteComponent() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="p-1 flex justify-between items-center gap-4">
+      <div className="h-16 px-2 flex justify-between items-center gap-4">
         <div className="flex items-center gap-0.5">
           <Button
             size="lg"

@@ -1,12 +1,9 @@
 import Item from "@/components/item";
 import Nav from "@/components/nav";
-import NewDropdown from "@/components/new-dropdown";
 import Space from "@/components/space";
 import { itemsQuery, spacesQuery } from "@/lib/queries";
-import { Button } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { LucidePlus } from "lucide-react";
 import { useCallback } from "react";
 
 export const Route = createFileRoute("/_app/_f/")({
@@ -34,15 +31,7 @@ function RouteComponent() {
         <div className="flex-1">
           <h1 className="text-xl md:text-2xl lg:text-4xl">{getGreeting()}!</h1>
         </div>
-        <div>
-          <NewDropdown
-            trigger={
-              <Button isIconOnly color="primary" variant="flat">
-                <LucidePlus className="size-5" />
-              </Button>
-            }
-          />
-        </div>
+        <div />
       </div>
 
       <div className="">

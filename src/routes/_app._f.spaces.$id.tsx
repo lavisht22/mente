@@ -1,9 +1,12 @@
 import Item from "@/components/item";
+import NewDropdown from "@/components/new-dropdown";
 import SpaceMembersDialog from "@/components/space-members-dialog";
 import { spaceItemsQuery, spaceQuery } from "@/lib/queries";
+import { Button } from "@heroui/react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { Tables } from "db.types";
+import { LucideArrowLeft, LucidePlus } from "lucide-react";
 import { useMemo } from "react";
 
 export const Route = createFileRoute("/_app/_f/spaces/$id")({
@@ -40,14 +43,30 @@ function RouteComponent() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="p-1 flex justify-between items-center gap-4">
-        <div />
+      <div className="h-16 px-2 flex justify-between items-center gap-4">
         <div>
+          <Button
+            isIconOnly
+            variant="light"
+            size="lg"
+            onPress={() => history.go(-1)}
+          >
+            <LucideArrowLeft className="size-4" />
+          </Button>
+        </div>
+        <div className="flex items-center">
           <SpaceMembersDialog space_id={id} />
+          <NewDropdown
+            trigger={
+              <Button variant="light" size="lg" isIconOnly>
+                <LucidePlus className="size-4" />
+              </Button>
+            }
+          />
         </div>
       </div>
 
-      <div className="p-6 overflow-auto">
+      <div className="p-6 flex-1 overflow-auto">
         <h1 className="text-3xl mb-8">{space.name}</h1>
 
         {dateKeys.length === 0 ? (
