@@ -3,14 +3,20 @@ import { Link } from "@tanstack/react-router";
 import type { Tables } from "db.types";
 import removeMd from "remove-markdown";
 
-export default function Item({ id, title, type, markdown }: Tables<"items">) {
+export default function Item({
+  id,
+  title,
+  type,
+  markdown,
+  space_id,
+}: Tables<"items">) {
   if (type === "note") {
     const plainText = markdown ? removeMd(markdown) : "";
 
     return (
       <Card
         as={Link}
-        to={`/items/${id}`}
+        to={`/spaces/${space_id}/items/${id}`}
         isPressable
         className="w-[180px] h-[216px] shrink-0 bg-yellow-50"
         shadow="sm"

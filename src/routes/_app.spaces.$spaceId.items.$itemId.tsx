@@ -28,7 +28,7 @@ import {
   LucideTrash,
 } from "lucide-react";
 
-export const Route = createFileRoute("/_app/items/$id")({
+export const Route = createFileRoute("/_app/spaces/$spaceId/items/$itemId")({
   component: RouteComponent,
 });
 
@@ -49,22 +49,22 @@ const itemQuery = (id: string) =>
   });
 
 function RouteComponent() {
-  const { id } = Route.useParams();
+  const { itemId } = Route.useParams();
 
   const { history, navigate } = useRouter();
   const queryClient = useQueryClient();
-  const { data: item } = useQuery(itemQuery(id));
+  const { data: item } = useQuery(itemQuery(itemId));
   const { data: spaces } = useQuery(spacesQuery);
 
   const [spaceId, setSpaceId] = useState<string | null>(item?.space_id ?? null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const updateSpaceMutation = useMutation({
-    mutationFn: async (newSpaceId: string | null) => {
+    mutationFn: async (newSpaceId: string) => {
       const { error } = await supabase
         .from("items")
         .update({ space_id: newSpaceId })
-        .eq("id", id);
+        .eq("id", itemId);
 
       if (error) throw error;
     },
@@ -72,12 +72,12 @@ function RouteComponent() {
       // Snapshot the previous value for rollback
       const previousItem = queryClient.getQueryData<Tables<"items">>([
         "item",
-        id,
+        itemId,
       ]);
 
       // Optimistically update to the new value
       queryClient.setQueryData(
-        ["item", id],
+        ["item", itemId],
         (old: Tables<"items"> | undefined) => {
           if (!old) return old;
           return {
@@ -92,7 +92,7 @@ function RouteComponent() {
     onError: (_err, _newSpaceId, context) => {
       // Rollback to previous value on error
       if (context?.previousItem) {
-        queryClient.setQueryData(["item", id], context.previousItem);
+        queryClient.setQueryData(["item", itemId], context.previousItem);
         setSpaceId(context.previousItem.space_id);
       }
     },
@@ -100,7 +100,7 @@ function RouteComponent() {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("items").delete().eq("id", id);
+      const { error } = await supabase.from("items").delete().eq("id", itemId);
 
       if (error) throw error;
     },
@@ -108,11 +108,11 @@ function RouteComponent() {
       // Snapshot the previous value for rollback
       const previousItem = queryClient.getQueryData<Tables<"items">>([
         "item",
-        id,
+        itemId,
       ]);
 
       // Optimistically remove from cache
-      queryClient.removeQueries({ queryKey: ["item", id] });
+      queryClient.removeQueries({ queryKey: ["item", itemId] });
 
       return { previousItem };
     },
@@ -123,7 +123,7 @@ function RouteComponent() {
     onError: (_err, _variables, context) => {
       // Rollback to previous value on error
       if (context?.previousItem) {
-        queryClient.setQueryData(["item", id], context.previousItem);
+        queryClient.setQueryData(["item", itemId], context.previousItem);
       }
     },
   });
