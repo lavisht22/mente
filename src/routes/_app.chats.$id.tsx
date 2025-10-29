@@ -1,6 +1,6 @@
 import Chat from "@/components/chat";
 import { chatQuery } from "@/lib/queries";
-import { Button, Skeleton } from "@heroui/react";
+import { Button, Skeleton, Spinner } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { LucideArrowLeft } from "lucide-react";
@@ -11,7 +11,23 @@ export const Route = createFileRoute("/_app/chats/$id")({
 
 function RouteComponent() {
   const { id } = Route.useParams();
-  const { data: chat } = useQuery(chatQuery(id));
+  const { data: chat, isError } = useQuery(chatQuery(id));
+
+  if (isError) {
+    return (
+      <div className="h-full w-full flex justify-center items-center">
+        <p>Unable to load this chat at the moment.</p>
+      </div>
+    );
+  }
+
+  if (!chat) {
+    return (
+      <div className="w-full h-full flex justify-center items-center">
+        <Spinner variant="wave" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -33,7 +49,7 @@ function RouteComponent() {
         </div>
       </div>
 
-      <Chat chatId={id} />
+      <Chat spaceId={chat.space_id} chatId={id} />
     </div>
   );
 }

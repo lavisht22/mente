@@ -15,6 +15,7 @@ export type Database = {
           id: string
           model: string
           name: string | null
+          space_id: string
           user_id: string
         }
         Insert: {
@@ -22,6 +23,7 @@ export type Database = {
           id?: string
           model: string
           name?: string | null
+          space_id: string
           user_id?: string
         }
         Update: {
@@ -29,9 +31,25 @@ export type Database = {
           id?: string
           model?: string
           name?: string | null
+          space_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "chats_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chats_user_id_fkey1"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chunks: {
         Row: {
@@ -71,30 +89,33 @@ export type Database = {
           id: string
           is_embed_pending: boolean
           markdown: string | null
-          space_id: string | null
+          space_id: string
           title: string | null
           type: Database["public"]["Enums"]["item_type"]
           updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
           is_embed_pending?: boolean
           markdown?: string | null
-          space_id?: string | null
+          space_id: string
           title?: string | null
           type: Database["public"]["Enums"]["item_type"]
           updated_at?: string
+          user_id?: string
         }
         Update: {
           created_at?: string
           id?: string
           is_embed_pending?: boolean
           markdown?: string | null
-          space_id?: string | null
+          space_id?: string
           title?: string | null
           type?: Database["public"]["Enums"]["item_type"]
           updated_at?: string
+          user_id?: string
         }
         Relationships: [
           {
@@ -102,6 +123,13 @@ export type Database = {
             columns: ["space_id"]
             isOneToOne: false
             referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -223,7 +251,9 @@ export type Database = {
         Args: { p_chat_id: string; p_user_id: string }
         Returns: boolean
       }
-      is_space_member: { Args: { sid: string; uid: string }; Returns: boolean }
+      is_space_admin: { Args: { sid: string; uid: string }; Returns: boolean }
+      is_space_reader: { Args: { sid: string; uid: string }; Returns: boolean }
+      is_space_writer: { Args: { sid: string; uid: string }; Returns: boolean }
     }
     Enums: {
       item_type: "note"
