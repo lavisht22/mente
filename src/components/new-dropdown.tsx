@@ -1,4 +1,3 @@
-import { spacesQuery } from "@/lib/queries";
 import supabase from "@/lib/supabase";
 import {
   Button,
@@ -8,7 +7,7 @@ import {
   addToast,
   useDisclosure,
 } from "@heroui/react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { LucideLayers, LucideNotebookPen } from "lucide-react";
 import { useMemo } from "react";
@@ -16,9 +15,9 @@ import NewSpaceModal from "./new-space-modal";
 
 export default function NewDropdown({
   trigger,
-}: { trigger?: React.ReactNode }) {
+  spaceId,
+}: { trigger?: React.ReactNode; spaceId: string }) {
   const navigate = useNavigate();
-  const { data: spaces } = useQuery(spacesQuery);
   const queryClient = useQueryClient();
 
   const { isOpen, onOpenChange } = useDisclosure();
@@ -27,12 +26,10 @@ export default function NewDropdown({
 
   const { mutate: createNote } = useMutation({
     mutationFn: async () => {
-      if (!spaces || spaces.length === 0) return;
-
       const { data: createdNote, error } = await supabase
         .from("items")
         .insert({
-          space_id: spaces[0].id,
+          space_id: spaceId,
           type: "note",
         })
         .select()

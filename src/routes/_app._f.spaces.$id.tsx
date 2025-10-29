@@ -57,6 +57,7 @@ function RouteComponent() {
         <div className="flex items-center">
           <SpaceMembersDialog space_id={id} />
           <NewDropdown
+            spaceId={id}
             trigger={
               <Button variant="light" size="lg" isIconOnly>
                 <LucidePlus className="size-4" />
