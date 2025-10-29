@@ -16,6 +16,23 @@ export const spacesQuery = queryOptions({
     },
 });
 
+export const spaceQuery = (id: string) =>
+    queryOptions({
+        queryKey: ["space", id],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from("spaces")
+                .select("*")
+                .eq("id", id)
+                .single();
+
+            if (error) throw error;
+
+            return data;
+        },
+        enabled: !!id,
+    });
+
 export const itemsQuery = queryOptions({
     queryKey: ["items"],
     queryFn: async () => {
@@ -29,6 +46,23 @@ export const itemsQuery = queryOptions({
         return data;
     },
 });
+
+export const spaceItemsQuery = (spaceId: string) =>
+    queryOptions({
+        queryKey: ["space_items", spaceId],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from("items")
+                .select("*")
+                .eq("space_id", spaceId)
+                .order("created_at", { ascending: false });
+
+            if (error) throw error;
+
+            return data;
+        },
+        enabled: !!spaceId,
+    });
 
 export const itemQuery = (id: string) =>
     queryOptions({
