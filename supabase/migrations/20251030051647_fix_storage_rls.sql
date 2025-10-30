@@ -1,7 +1,3 @@
-drop function if exists "public"."is_chat_reader"(p_chat_id uuid, p_user_id uuid);
-
-drop function if exists "public"."is_chat_writer"(p_chat_id uuid, p_user_id uuid);
-
 set check_function_bodies = off;
 
 CREATE OR REPLACE FUNCTION public.insert_space_user(sid uuid, uid uuid)
@@ -47,4 +43,6 @@ using (((bucket_id = 'chats'::text) AND is_space_reader(( SELECT c.space_id
   WHERE (c.id = ((storage.foldername(objects.name))[1])::uuid)), auth.uid())));
 
 
+drop function if exists "public"."is_chat_reader"(p_chat_id uuid, p_user_id uuid);
 
+drop function if exists "public"."is_chat_writer"(p_chat_id uuid, p_user_id uuid);
