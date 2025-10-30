@@ -61,7 +61,7 @@ function SpaceName({ spaceId }: { spaceId: string }) {
       disableAnimation
       disableRipple
     >
-      local
+      {space.name}
     </Button>
   );
 }
