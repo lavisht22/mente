@@ -210,7 +210,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
-          user_id: string
+          user_id?: string
         }
         Update: {
           created_at?: string
@@ -224,16 +224,19 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_hidden: boolean
           name: string | null
         }
         Insert: {
           created_at?: string
           id: string
+          is_hidden?: boolean
           name?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          is_hidden?: boolean
           name?: string | null
         }
         Relationships: []
@@ -243,12 +246,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_chat_reader: {
-        Args: { p_chat_id: string; p_user_id: string }
-        Returns: boolean
-      }
-      is_chat_writer: {
-        Args: { p_chat_id: string; p_user_id: string }
+      insert_space_user: {
+        Args: { sid: string; uid: string }
         Returns: boolean
       }
       is_space_admin: { Args: { sid: string; uid: string }; Returns: boolean }

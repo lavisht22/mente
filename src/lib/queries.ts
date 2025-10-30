@@ -166,6 +166,7 @@ export const usersQuery = queryOptions({
         const { data, error } = await supabase
             .from("users")
             .select("*")
+            .is("is_hidden", false)
             .order("created_at", { ascending: false });
 
         if (error) throw error;

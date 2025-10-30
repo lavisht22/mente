@@ -10,6 +10,7 @@ import {
   addToast,
 } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
 export default function NewSpaceModal({
@@ -19,30 +20,27 @@ export default function NewSpaceModal({
   isOpen: boolean;
   onOpenChange: () => void;
 }) {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
 
   const { mutate: createSpace, isPending: isCreating } = useMutation({
     mutationFn: async () => {
-      const { data: user } = await supabase.auth.getClaims();
-
-      if (!user) {
-        return;
-      }
-
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("spaces")
         .insert({
           name,
-          user_id: user.claims.sub,
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["spaces"] });
+      navigate({ to: `/spaces/${data.id}` });
       onOpenChange();
     },
     onError: (error) => {
