@@ -1,4 +1,4 @@
-import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
+import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
@@ -16,6 +16,7 @@ const CHAT_OPEN_KEY = "mente-chat-open";
 
 function RouteComponent() {
   const { spaceId } = Route.useParams();
+  const navigate = useNavigate();
   const { data: space, isError } = useQuery(spaceQuery(spaceId));
 
   const [isChatOpen, setIsChatOpen] = useState(() => {
@@ -73,8 +74,14 @@ function RouteComponent() {
             variant="light"
             isIconOnly
             size="lg"
-            as={Link}
-            to="/chats"
+            onPress={() => {
+              navigate({
+                to: "/chats",
+                search: {
+                  spaceId,
+                },
+              });
+            }}
           >
             <Logo size={6} />
           </Button>
