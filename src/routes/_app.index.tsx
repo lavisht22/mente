@@ -1,7 +1,7 @@
 import Item from "@/components/item";
 import Nav from "@/components/nav";
 import Space from "@/components/space";
-import { itemsQuery, spacesQuery } from "@/lib/queries";
+import { itemsQuery, spacesQuery, userQuery } from "@/lib/queries";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback } from "react";
@@ -13,6 +13,7 @@ export const Route = createFileRoute("/_app/")({
 function RouteComponent() {
   const { data: items } = useQuery(itemsQuery);
   const { data: spaces } = useQuery(spacesQuery);
+  const { data: user } = useQuery(userQuery);
 
   const getGreeting = useCallback(() => {
     const hour = new Date().getHours();
@@ -27,7 +28,11 @@ function RouteComponent() {
 
   return (
     <div className="flex flex-col h-full py-6">
-      <h1 className="text-3xl ml-6 mb-8">{getGreeting()}!</h1>
+      <h1 className="text-3xl ml-6 mb-8">
+        <span>{getGreeting()}</span>
+        <span className="font-serif italic">{`${user && `, ${user.name}`}`}</span>
+        !
+      </h1>
 
       <div>
         <h3 className="text-lg font-medium ml-6">Recent Items</h3>
