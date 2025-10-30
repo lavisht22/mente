@@ -1,23 +1,113 @@
-import { Accordion, AccordionItem } from "@heroui/react";
+import { Accordion, AccordionItem, Button, Tooltip } from "@heroui/react";
+import {
+  LucideCheck,
+  LucideCopy,
+  LucideMegaphone,
+  LucidePlus,
+  LucideRefreshCcw,
+} from "lucide-react";
+import { useState } from "react";
 import Markdown from "react-markdown";
 import { rehypeInlineCodeProperty } from "react-shiki";
 import remarkGfm from "remark-gfm";
 import type { MessageT } from "./chat-message";
 import CodeBlock from "./code-block";
 
+interface MessageActionsProps {
+  messageText: string;
+}
+
+function MessageActions({ messageText }: MessageActionsProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(messageText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="flex items-center mt-4 -ml-2">
+      <Tooltip content="Redo">
+        <Button
+          size="sm"
+          isIconOnly
+          variant="light"
+          isDisabled
+          aria-label="Add to note"
+        >
+          <LucideRefreshCcw className="size-4" />
+        </Button>
+      </Tooltip>
+
+      <Tooltip content={copied ? "Copied!" : "Copy message"}>
+        <Button
+          size="sm"
+          isIconOnly
+          variant="light"
+          onPress={handleCopy}
+          aria-label={copied ? "Copied!" : "Copy message"}
+        >
+          {copied ? (
+            <LucideCheck className="size-4" />
+          ) : (
+            <LucideCopy className="size-4" />
+          )}
+        </Button>
+      </Tooltip>
+      <Tooltip content="Add to note">
+        <Button
+          size="sm"
+          isIconOnly
+          variant="light"
+          isDisabled
+          aria-label="Add to note"
+        >
+          <LucidePlus className="size-4" />
+        </Button>
+      </Tooltip>
+      <Tooltip content="Listen">
+        <Button
+          size="sm"
+          isIconOnly
+          variant="light"
+          isDisabled
+          aria-label="Listen"
+        >
+          <LucideMegaphone className="size-4" />
+        </Button>
+      </Tooltip>
+    </div>
+  );
+}
+
 interface MessageProps {
   message: MessageT;
 }
 
 export default function AssistantMessage({ message }: MessageProps) {
+  // Extract text content from message
+  const getMessageText = () => {
+    if (typeof message.data.content === "string") {
+      return message.data.content;
+    }
+
+    return message.data.content
+      .filter((part) => part.type === "text")
+      .map((part) => (part.type === "text" ? part.text : ""))
+      .join("\n\n");
+  };
+
   if (typeof message.data.content === "string") {
     return (
-      <div className="gap-4 w-full overflow-hidden prose">
-        <Markdown>{message.data.content}</Markdown>
+      <div className="w-full">
+        <div className="gap-4 w-full overflow-hidden prose">
+          <Markdown>{message.data.content}</Markdown>
+        </div>
+        <MessageActions messageText={message.data.content} />
       </div>
     );
   }
-
   return (
     <div>
       {message.data.content.map((part, index) => {
@@ -70,6 +160,7 @@ export default function AssistantMessage({ message }: MessageProps) {
           );
         }
       })}
+      <MessageActions messageText={getMessageText()} />
     </div>
   );
 }
