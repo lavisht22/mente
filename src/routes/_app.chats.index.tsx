@@ -1,5 +1,5 @@
 import ChatNew from "@/components/chat-new";
-import { chatsQuery } from "@/lib/queries";
+import { spaceChatsQuery } from "@/lib/queries";
 
 import {
   Button,
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_app/chats/")({
 function RouteComponent() {
   const { spaceId } = Route.useSearch();
   const navigate = useNavigate();
-  const { data: chats } = useQuery(chatsQuery);
+  const { data: chats } = useQuery(spaceChatsQuery(spaceId));
 
   if (!spaceId) {
     return (

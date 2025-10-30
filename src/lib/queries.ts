@@ -80,20 +80,26 @@ export const itemQuery = (id: string) =>
         },
     });
 
-export const chatsQuery = queryOptions({
-    queryKey: ["chats"],
-    queryFn: async () => {
-        const { data, error } = await supabase
-            .from("chats")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .limit(10);
+export const spaceChatsQuery = (id?: string) =>
+    queryOptions({
+        queryKey: ["space_chats", id],
+        queryFn: async () => {
+            if (!id) {
+                throw new Error("ID not provided");
+            }
 
-        if (error) throw error;
+            const { data, error } = await supabase
+                .from("chats")
+                .select("*")
+                .eq("space_id", id)
+                .order("created_at", { ascending: false }).limit(100);
 
-        return data;
-    },
-});
+            if (error) throw error;
+
+            return data;
+        },
+        enabled: !!id,
+    });
 
 export const chatQuery = (id: string) =>
     queryOptions({

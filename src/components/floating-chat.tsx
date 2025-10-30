@@ -1,4 +1,4 @@
-import { chatsQuery } from "@/lib/queries";
+import { spaceChatsQuery } from "@/lib/queries";
 import {
   Button,
   Card,
@@ -7,7 +7,7 @@ import {
   DropdownMenu,
   DropdownTrigger,
 } from "@heroui/react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
@@ -36,14 +36,14 @@ export default function FloatingChat({
   onClose,
 }: FloatingChatProps) {
   const navigate = useNavigate();
-  const { data: chats } = useSuspenseQuery(chatsQuery);
+  const { data: chats } = useQuery(spaceChatsQuery(spaceId));
 
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(
     undefined,
   );
 
   const currentChat = useMemo(() => {
-    return chats.find((chat) => chat.id === currentChatId);
+    return chats?.find((chat) => chat.id === currentChatId);
   }, [chats, currentChatId]);
 
   if (!isOpen) {
