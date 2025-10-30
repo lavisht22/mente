@@ -7,6 +7,7 @@ export type MessageT = Tables<"messages"> & { data: ModelMessage };
 
 interface MessageProps {
   message: MessageT;
+  loading: boolean;
 }
 
 export default function Message({ message, ...props }: MessageProps) {

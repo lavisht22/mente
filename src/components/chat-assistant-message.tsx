@@ -83,9 +83,10 @@ function MessageActions({ messageText }: MessageActionsProps) {
 
 interface MessageProps {
   message: MessageT;
+  loading: boolean;
 }
 
-export default function AssistantMessage({ message }: MessageProps) {
+export default function AssistantMessage({ message, loading }: MessageProps) {
   // Extract text content from message
   const getMessageText = () => {
     if (typeof message.data.content === "string") {
@@ -104,7 +105,9 @@ export default function AssistantMessage({ message }: MessageProps) {
         <div className="gap-4 w-full overflow-hidden prose">
           <Markdown>{message.data.content}</Markdown>
         </div>
-        <MessageActions messageText={message.data.content} />
+        {loading === false && (
+          <MessageActions messageText={message.data.content} />
+        )}
       </div>
     );
   }
@@ -160,7 +163,7 @@ export default function AssistantMessage({ message }: MessageProps) {
           );
         }
       })}
-      <MessageActions messageText={getMessageText()} />
+      {loading === false && <MessageActions messageText={getMessageText()} />}
     </div>
   );
 }

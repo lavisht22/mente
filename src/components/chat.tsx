@@ -331,12 +331,10 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
   useEffect(() => {
     if (sendMutation.isPending) return;
 
-    if (messages && messages.length === 1) {
-      const firstMessage = messages[0] as MessageT;
+    const lastMessage = messages?.[messages.length - 1] as MessageT;
 
-      if (firstMessage.data.role === "user") {
-        sendMutation.mutate(undefined);
-      }
+    if (lastMessage?.data.role === "user") {
+      sendMutation.mutate(undefined);
     }
   }, [messages, sendMutation]);
 
@@ -351,8 +349,12 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
   return (
     <div className="h-full flex flex-col justify-between overflow-hidden">
       <div className="flex-1 overflow-y-auto">
-        {messages?.map((message) => (
-          <Message key={message.id} message={message as MessageT} />
+        {messages?.map((message, idx) => (
+          <Message
+            key={message.id}
+            message={message as MessageT}
+            loading={idx === messages.length - 1 && generating}
+          />
         ))}
         {generating && (
           <div className="w-full max-w-2xl mx-auto p-4">
