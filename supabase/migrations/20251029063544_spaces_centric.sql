@@ -55,7 +55,7 @@ alter table "public"."users" enable row level security;
 
 alter table "public"."chats" add column "space_id" uuid not null;
 
-alter table "public"."items" add column "user_id" uuid not null default auth.uid();
+alter table "public"."items" add column "user_id" uuid;
 
 alter table "public"."items" alter column "space_id" set not null;
 
