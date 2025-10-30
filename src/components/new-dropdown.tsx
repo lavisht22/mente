@@ -9,9 +9,8 @@ import {
 } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { LucideLayers, LucideNotebookPen } from "lucide-react";
+import { LucideNotebookPen } from "lucide-react";
 import { useMemo } from "react";
-import NewSpaceModal from "./new-space-modal";
 
 export default function NewDropdown({
   trigger,
@@ -21,8 +20,6 @@ export default function NewDropdown({
   const queryClient = useQueryClient();
 
   const { isOpen, onOpenChange } = useDisclosure();
-  const { isOpen: isSpaceModalOpen, onOpenChange: onSpaceModalOpenChange } =
-    useDisclosure();
 
   const { mutate: createNote } = useMutation({
     mutationFn: async () => {
@@ -64,17 +61,8 @@ export default function NewDropdown({
         shortcut: "N",
         onPress: () => createNote(),
       },
-      {
-        label: "Space",
-        icon: LucideLayers,
-        shortcut: "S",
-        onPress: () => {
-          onOpenChange();
-          onSpaceModalOpenChange();
-        },
-      },
     ],
-    [createNote, onOpenChange, onSpaceModalOpenChange],
+    [createNote],
   );
 
   return (
@@ -109,10 +97,6 @@ export default function NewDropdown({
           ))}
         </PopoverContent>
       </Popover>
-      <NewSpaceModal
-        isOpen={isSpaceModalOpen}
-        onOpenChange={onSpaceModalOpenChange}
-      />
     </>
   );
 }
