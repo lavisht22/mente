@@ -26,15 +26,10 @@ function RouteComponent() {
   }, []);
 
   return (
-    <div className="w-full flex flex-col">
-      <div className="flex items-center gap-4 p-6">
-        <div className="flex-1">
-          <h1 className="text-xl md:text-2xl lg:text-4xl">{getGreeting()}!</h1>
-        </div>
-        <div />
-      </div>
+    <div className="flex flex-col h-full py-6">
+      <h1 className="text-3xl ml-6 mb-8">{getGreeting()}!</h1>
 
-      <div className="">
+      <div>
         <h3 className="text-lg font-medium ml-6">Recent Items</h3>
         <div className="flex gap-4 w-full overflow-x-auto p-6 -mt-2 scrollbar-hide">
           {items?.map((item) => (
@@ -43,7 +38,7 @@ function RouteComponent() {
         </div>
       </div>
 
-      <div className="">
+      <div>
         <h3 className="text-lg font-medium ml-6">Recent Spaces</h3>
         <div className="flex gap-4 w-full overflow-x-auto p-6 -mt-2 scrollbar-hide">
           {spaces?.map((space) => (
