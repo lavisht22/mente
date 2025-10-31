@@ -224,8 +224,7 @@ export default function ChatInput({
   return (
     <div
       className={cn({
-        "w-full mx-auto max-w-2xl md:px-4 md:pb-6 bg-default-50":
-          style === "normal",
+        "w-full mx-auto max-w-2xl md:pb-6 bg-default-50": style === "normal",
         "w-full bottom-0": style === "floating",
       })}
     >

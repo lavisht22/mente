@@ -12,19 +12,11 @@ interface MessageProps {
 
 export default function Message({ message, ...props }: MessageProps) {
   if (message.data.role === "user") {
-    return (
-      <div className="w-full max-w-2xl mx-auto p-6">
-        <UserMessage message={message} {...props} />
-      </div>
-    );
+    return <UserMessage message={message} {...props} />;
   }
 
   if (message.data.role === "assistant") {
-    return (
-      <div className="w-full max-w-2xl mx-auto p-6">
-        <AssistantMessage message={message} {...props} />
-      </div>
-    );
+    return <AssistantMessage message={message} {...props} />;
   }
 
   return <div className="h-[1px]" />;

@@ -15,8 +15,10 @@ import type { Json } from "db.types";
 import { stream } from "fetch-event-stream";
 import { customAlphabet } from "nanoid";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import ChatInput from "./chat-input";
 import Message, { type MessageT } from "./chat-message";
+import Logo from "./logo";
 
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
 
@@ -27,6 +29,8 @@ interface ChatProps {
 }
 
 export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
+  const virtuoso = useRef<VirtuosoHandle>(null);
+
   const queryClient = useQueryClient();
 
   const { data: chat, isLoading: chatLoading } = useQuery(chatQuery(chatId));
@@ -34,33 +38,7 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
     ...chatMessagesQuery(chatId || ""),
   });
 
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const lastScrollPositionRef = useRef<number>(0);
-  const hasUserScrolledUpRef = useRef<boolean>(false);
-
   const [generating, setGenerating] = useState(false);
-
-  // Track scroll position to update the ref
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY < lastScrollPositionRef.current) {
-        // User has scrolled up
-        console.log("User has scrolled up");
-        hasUserScrolledUpRef.current = true;
-      }
-
-      lastScrollPositionRef.current = window.scrollY;
-    };
-
-    window.addEventListener("scroll", handleScroll);
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Helper function to scroll to bottom
-  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
-    bottomRef.current?.scrollIntoView({ behavior });
-  }, []);
 
   const continueChat = useCallback(async () => {
     const abort = new AbortController();
@@ -80,8 +58,6 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
         signal: abort.signal,
       },
     );
-
-    hasUserScrolledUpRef.current = false;
 
     const idMap = new Map<string, string>();
 
@@ -191,11 +167,11 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
         queryClient.invalidateQueries({ queryKey: ["chat", chatId] });
       }
 
-      if (!hasUserScrolledUpRef.current) {
-        scrollToBottom("smooth");
-      }
+      // if (!hasUserScrolledUpRef.current) {
+      //   scrollToBottom("smooth");
+      // }
     }
-  }, [chatId, queryClient, scrollToBottom]);
+  }, [chatId, queryClient]);
 
   const sendMutation = useMutation({
     mutationFn: async (payload?: {
@@ -276,9 +252,13 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
           clear();
 
           // Always scroll to bottom when user sends a message
-          setTimeout(() => {
-            scrollToBottom();
-          }, 100);
+          if (virtuoso.current) {
+            virtuoso.current.scrollToIndex({
+              index: Number.POSITIVE_INFINITY,
+              align: "end",
+              behavior: "smooth",
+            });
+          }
         }
 
         setGenerating(true);
@@ -347,22 +327,37 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
   }
 
   return (
-    <div className="h-full flex flex-col justify-between overflow-hidden">
-      <div className="flex-1 overflow-y-auto">
-        {messages?.map((message, idx) => (
-          <Message
-            key={message.id}
-            message={message as MessageT}
-            loading={idx === messages.length - 1 && generating}
-          />
-        ))}
-        {generating && (
-          <div className="w-full max-w-2xl mx-auto p-4">
-            <Spinner variant="wave" />
-          </div>
-        )}
-        <div className="h-8 w-full" />
-        <div ref={bottomRef} />
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="flex-1">
+        <Virtuoso
+          ref={virtuoso}
+          className="h-full"
+          data={messages}
+          initialTopMostItemIndex={messages && messages.length - 1}
+          followOutput="auto"
+          itemContent={(index, message) => {
+            return (
+              <div key={message.id} className="w-full max-w-2xl mx-auto p-6">
+                <Message
+                  key={message.id}
+                  message={message as MessageT}
+                  loading={
+                    messages
+                      ? index === messages.length - 1 && generating
+                      : false
+                  }
+                />
+              </div>
+            );
+          }}
+          components={{
+            Footer: () => (
+              <div className="w-full max-w-2xl mx-auto px-4 h-16 flex items-center">
+                {generating && <Logo animation={true} />}
+              </div>
+            ),
+          }}
+        />
       </div>
 
       <ChatInput
