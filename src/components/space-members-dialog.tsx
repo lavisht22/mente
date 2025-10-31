@@ -143,7 +143,7 @@ export default function SpaceMembersDialog({
   }
 
   return (
-    <Popover>
+    <Popover backdrop="blur" placement="bottom-end">
       <PopoverTrigger>
         <button
           className="h-12 flex justify-center items-center px-3"
@@ -165,7 +165,11 @@ export default function SpaceMembersDialog({
       <PopoverContent className="p-4 min-w-96 space-y-4">
         <div className="flex flex-col gap-2 w-full">
           {data.map((spaceUser) => (
-            <Dropdown key={spaceUser.user_id} placement="bottom-end">
+            <Dropdown
+              key={spaceUser.user_id}
+              placement="bottom-end"
+              backdrop="blur"
+            >
               <DropdownTrigger>
                 <Button
                   className="px-2 h-12"

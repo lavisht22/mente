@@ -99,7 +99,7 @@ function RouteComponent() {
         </div>
 
         <div className="flex flex-1 justify-end items-center gap-2">
-          <Dropdown backdrop="blur">
+          <Dropdown backdrop="blur" placement="bottom-end">
             <DropdownTrigger>
               <Button size="lg" variant="light" isIconOnly>
                 <LucideEllipsisVertical className="size-4" />

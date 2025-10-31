@@ -247,7 +247,7 @@ export default function UserMessage({ message }: MessageProps) {
           attachments={attachments}
         />
       ) : (
-        <Dropdown placement="bottom-end">
+        <Dropdown placement="bottom-end" backdrop="blur">
           <DropdownTrigger>
             <div>
               <MessagePreview text={text || ""} />

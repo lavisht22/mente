@@ -303,7 +303,11 @@ export default function ChatInput({
               <Button variant="light" radius="full" isIconOnly isDisabled>
                 <LucideSettings2 className="size-4" />
               </Button>
-              <Dropdown isOpen={isOpen} onOpenChange={onOpenChange}>
+              <Dropdown
+                isOpen={isOpen}
+                onOpenChange={onOpenChange}
+                backdrop="blur"
+              >
                 <DropdownTrigger>
                   <Button
                     variant="light"

@@ -57,7 +57,7 @@ function RouteComponent() {
 
         <div>
           {chats && (
-            <Dropdown>
+            <Dropdown backdrop="blur" placement="bottom-end">
               <DropdownTrigger>
                 <Button size="lg" isIconOnly variant="light">
                   <LucideHistory className="size-4" />

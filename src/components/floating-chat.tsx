@@ -98,7 +98,7 @@ export default function FloatingChat({
                 <LucidePlus className="size-5" strokeWidth={1.7} />
               </Button>
             )}
-            <Dropdown>
+            <Dropdown backdrop="blur" placement="bottom-end">
               <DropdownTrigger>
                 <Button isIconOnly variant="light" size="sm">
                   <LucideHistory className="size-4" />
