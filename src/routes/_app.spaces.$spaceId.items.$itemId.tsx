@@ -4,8 +4,6 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
-  Select,
-  SelectItem,
 } from "@heroui/react";
 import {
   queryOptions,
@@ -14,13 +12,12 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import ConfirmationDialog from "@/components/confirmation-dialog";
 
 import type { Tables } from "@/../../db.types";
 import NoteEditor from "@/components/note-editor";
-import { spacesQuery } from "@/lib/queries";
 import supabase from "@/lib/supabase";
 import {
   LucideArrowLeft,
@@ -54,49 +51,8 @@ function RouteComponent() {
   const { history, navigate } = useRouter();
   const queryClient = useQueryClient();
   const { data: item } = useQuery(itemQuery(itemId));
-  const { data: spaces } = useQuery(spacesQuery);
 
-  const [spaceId, setSpaceId] = useState<string | null>(item?.space_id ?? null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  const updateSpaceMutation = useMutation({
-    mutationFn: async (newSpaceId: string) => {
-      const { error } = await supabase
-        .from("items")
-        .update({ space_id: newSpaceId })
-        .eq("id", itemId);
-
-      if (error) throw error;
-    },
-    onMutate: async (newSpaceId) => {
-      // Snapshot the previous value for rollback
-      const previousItem = queryClient.getQueryData<Tables<"items">>([
-        "item",
-        itemId,
-      ]);
-
-      // Optimistically update to the new value
-      queryClient.setQueryData(
-        ["item", itemId],
-        (old: Tables<"items"> | undefined) => {
-          if (!old) return old;
-          return {
-            ...old,
-            space_id: newSpaceId,
-          };
-        },
-      );
-
-      return { previousItem };
-    },
-    onError: (_err, _newSpaceId, context) => {
-      // Rollback to previous value on error
-      if (context?.previousItem) {
-        queryClient.setQueryData(["item", itemId], context.previousItem);
-        setSpaceId(context.previousItem.space_id);
-      }
-    },
-  });
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -128,18 +84,6 @@ function RouteComponent() {
     },
   });
 
-  useEffect(() => {
-    if (item) {
-      setSpaceId(item.space_id ?? null);
-    }
-  }, [item]);
-
-  const handleSpaceChange = (keys: "all" | Set<React.Key>) => {
-    const newSpaceId = Array.from(keys)[0] as string;
-    setSpaceId(newSpaceId);
-    updateSpaceMutation.mutate(newSpaceId);
-  };
-
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="h-16 w-full px-2 flex justify-between items-center gap-4">
@@ -155,18 +99,6 @@ function RouteComponent() {
         </div>
 
         <div className="flex flex-1 justify-end items-center gap-2">
-          <Select
-            variant="bordered"
-            color="primary"
-            className="w-full max-w-40"
-            placeholder="Space"
-            selectedKeys={spaceId ? [spaceId] : []}
-            onSelectionChange={handleSpaceChange}
-          >
-            {(spaces ?? []).map((space) => (
-              <SelectItem key={space.id}>{space.name}</SelectItem>
-            ))}
-          </Select>
           <Dropdown backdrop="blur">
             <DropdownTrigger>
               <Button size="lg" variant="light" isIconOnly>
