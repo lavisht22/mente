@@ -73,7 +73,9 @@ export default function NewSpaceModal({
           />
         </ModalBody>
         <ModalFooter>
-          <Button variant="light">Cancel</Button>
+          <Button variant="light" onPress={onOpenChange}>
+            Cancel
+          </Button>
           <Button
             color="primary"
             onPress={() => createSpace()}
