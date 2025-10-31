@@ -1,6 +1,6 @@
 import Item from "@/components/item";
 import NewDropdown from "@/components/new-dropdown";
-import SpaceMembersDialog from "@/components/space-members-dialog";
+import SpaceMembers from "@/components/space-members";
 import { spaceItemsQuery, spaceQuery } from "@/lib/queries";
 import { Button } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
@@ -57,7 +57,7 @@ function RouteComponent() {
           </Button>
         </div>
         <div className="flex items-center">
-          <SpaceMembersDialog space_id={spaceId} />
+          <SpaceMembers space_id={spaceId} />
           <NewDropdown
             spaceId={spaceId}
             trigger={

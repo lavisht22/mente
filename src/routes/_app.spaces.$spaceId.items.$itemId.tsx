@@ -14,7 +14,7 @@ import {
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 
-import ConfirmationDialog from "@/components/confirmation-dialog";
+import ConfirmationModal from "@/components/confirmation-modal";
 
 import type { Tables } from "@/../../db.types";
 import NoteEditor from "@/components/note-editor";
@@ -123,7 +123,7 @@ function RouteComponent() {
         {item?.type === "note" && <NoteEditor item={item} />}
       </div>
 
-      <ConfirmationDialog
+      <ConfirmationModal
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={() => deleteMutation.mutate()}

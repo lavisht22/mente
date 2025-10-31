@@ -7,7 +7,7 @@ import {
   ModalHeader,
 } from "@heroui/react";
 
-interface ConfirmationDialogProps {
+interface ConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -25,7 +25,7 @@ interface ConfirmationDialogProps {
   isLoading?: boolean;
 }
 
-export default function ConfirmationDialog({
+export default function ConfirmationModal({
   isOpen,
   onClose,
   onConfirm,
@@ -35,7 +35,7 @@ export default function ConfirmationDialog({
   cancelLabel = "Cancel",
   confirmColor = "primary",
   isLoading = false,
-}: ConfirmationDialogProps) {
+}: ConfirmationModalProps) {
   const handleConfirm = () => {
     onConfirm();
   };

@@ -19,10 +19,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { LucideChevronDown } from "lucide-react";
 import { useMemo } from "react";
 
-interface SpaceMembersDialogProps {
-  space_id: string;
-}
-
 function AddUsers({
   existing,
   space_id,
@@ -103,9 +99,11 @@ function AddUsers({
   );
 }
 
-export default function SpaceMembersDialog({
-  space_id,
-}: SpaceMembersDialogProps) {
+interface SpaceMembersDialogProps {
+  space_id: string;
+}
+
+export default function SpaceMembers({ space_id }: SpaceMembersDialogProps) {
   const queryClient = useQueryClient();
   const { data, isLoading, isError } = useQuery(spaceUsersQuery(space_id));
 
