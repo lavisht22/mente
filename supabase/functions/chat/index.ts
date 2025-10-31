@@ -3,7 +3,6 @@ import "@supabase/functions-js/edge-runtime.d.ts";
 import {
   type FilePart,
   type ImagePart,
-  jsonSchema,
   ModelMessage,
   stepCountIs,
   streamText,
@@ -14,6 +13,10 @@ import { createAzure } from "@ai-sdk/azure";
 import { createVertex } from "@ai-sdk/google-vertex/edge";
 import { createClient } from "@supabase/supabase-js";
 import { Database, Json } from "db.types";
+import { z } from "zod";
+import { Exa } from "exa-js";
+
+export const exa = new Exa(Deno.env.get("EXA_API_KEY")!);
 
 const azure = createAzure({
   resourceName: Deno.env.get("AZURE_RESOURCE_NAME")!,
@@ -173,32 +176,61 @@ Deno.serve(async (req) => {
     }),
   );
 
-  console.log(
-    "Transformed Messages:",
-    JSON.stringify(transformedMessages, null, 2),
-  );
-
   const body = new ReadableStream({
     async start(controller) {
       const result = await streamText({
         model: getAIChatModel(data.model),
         tools: {
-          weather: tool({
-            description: "Get the weather in a location",
-            inputSchema: jsonSchema({
-              type: "object",
-              properties: {
-                location: {
-                  type: "string",
-                  description: "The location to get the weather for",
-                },
+          webSearch: tool({
+            description: "Search the internet for up-to-date information.",
+            inputSchema: z.object({
+              query: z.string().min(1).max(100),
+              category: z.enum([
+                "company",
+                "research paper",
+                "news",
+                "pdf",
+                "github",
+                "tweet",
+                "personal site",
+                "linkedin profile",
+                "financial report",
+              ]).optional().describe("A data category to focus on."),
+              numResults: z.number().int().positive().max(5).optional().default(
+                3,
+              )
+                .describe(
+                  "Number of search results to return. Default value is 3, use a value larger than 3 when doing some deep research.",
+                ),
+            }),
+            execute: async (
+              { query, numResults = 3, category }: {
+                query: string;
+                numResults: number;
+                category?:
+                  | "company"
+                  | "research paper"
+                  | "news"
+                  | "pdf"
+                  | "github"
+                  | "tweet"
+                  | "personal site"
+                  | "linkedin profile"
+                  | "financial report";
               },
-              required: ["location"],
-            }),
-            execute: ({ location }: { location: string }) => ({
-              location,
-              temperature: 72 + Math.floor(Math.random() * 21) - 10,
-            }),
+            ) => {
+              const { context } = await exa.search(query, {
+                numResults,
+                category,
+
+                contents: {
+                  context: true,
+                  text: true,
+                },
+              });
+
+              return context;
+            },
           }),
         },
         messages: [
