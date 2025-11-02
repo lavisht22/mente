@@ -7,7 +7,13 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
+  Listbox,
+  ListboxItem,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
   Skeleton,
+  Switch,
   addToast,
   cn,
   useDisclosure,
@@ -21,6 +27,7 @@ import {
   LucideLayers,
   LucideLightbulb,
   LucidePaperclip,
+  LucideSearch,
   LucideSettings2,
   LucideX,
 } from "lucide-react";
@@ -43,6 +50,15 @@ const MODELS = [
   {
     key: "gemini-2.5-flash",
     thinking: true,
+  },
+];
+
+const AVAILABLE_TOOLS = [
+  {
+    key: "web-search",
+    name: "Web Search",
+    description: "Powered by Exa",
+    icon: <LucideSearch className="size-4" />,
   },
 ];
 
@@ -102,7 +118,9 @@ interface ChatInputProps {
   }) => void;
   sending: boolean;
   model: string;
-  onModelChange: (value: string) => void;
+  setModel: (value: string) => void;
+  tools: string[];
+  setTools: (tools: string[]) => void;
 }
 
 export default function ChatInput({
@@ -111,12 +129,17 @@ export default function ChatInput({
   send,
   sending,
   model,
-  onModelChange,
+  setModel,
+  tools,
+  setTools,
 }: ChatInputProps) {
   const [text, setText] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+
   const { isOpen, onOpenChange } = useDisclosure();
+  const { isOpen: isToolsOpen, onOpenChange: onToolsOpenChange } =
+    useDisclosure();
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -221,6 +244,16 @@ export default function ChatInput({
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const toggleTool = (toolKey: string) => {
+    setTools((prev) => {
+      if (prev.includes(toolKey)) {
+        return prev.filter((tool) => tool !== toolKey);
+      }
+
+      return [...prev, toolKey];
+    });
+  };
+
   return (
     <div
       className={cn({
@@ -299,9 +332,41 @@ export default function ChatInput({
                 <LucidePaperclip className="size-4" />
               </Button>
 
-              <Button variant="light" radius="full" isIconOnly isDisabled>
-                <LucideSettings2 className="size-4" />
-              </Button>
+              <Popover
+                isOpen={isToolsOpen}
+                onOpenChange={onToolsOpenChange}
+                placement="top-start"
+                backdrop="blur"
+              >
+                <PopoverTrigger>
+                  <Button variant="light" radius="full" isIconOnly>
+                    <LucideSettings2 className="size-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0 w-80">
+                  <Listbox
+                    aria-label="Tools"
+                    variant="light"
+                    selectionMode="none"
+                  >
+                    {AVAILABLE_TOOLS.map((tool) => (
+                      <ListboxItem
+                        key={tool.key}
+                        startContent={tool.icon}
+                        endContent={
+                          <Switch
+                            isSelected={tools.includes(tool.key)}
+                            onValueChange={() => toggleTool(tool.key)}
+                            size="sm"
+                          />
+                        }
+                        title={tool.name}
+                        description={tool.description}
+                      />
+                    ))}
+                  </Listbox>
+                </PopoverContent>
+              </Popover>
               <Dropdown
                 isOpen={isOpen}
                 onOpenChange={onOpenChange}
@@ -322,7 +387,7 @@ export default function ChatInput({
                   aria-label="Models"
                   items={MODELS}
                   onAction={(key) => {
-                    onModelChange(key as string);
+                    setModel(key as string);
                     onOpenChange();
                   }}
                 >
