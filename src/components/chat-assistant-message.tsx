@@ -103,7 +103,22 @@ export default function AssistantMessage({ message, loading }: MessageProps) {
     return (
       <div className="w-full">
         <div className="gap-4 w-full overflow-hidden prose">
-          <Markdown>{message.data.content}</Markdown>
+          <Markdown
+            components={{
+              a: ({ href, children, ...props }) => (
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  {...props}
+                >
+                  {children}
+                </a>
+              ),
+            }}
+          >
+            {message.data.content}
+          </Markdown>
         </div>
         {loading === false && (
           <MessageActions messageText={message.data.content} />
@@ -125,6 +140,16 @@ export default function AssistantMessage({ message, loading }: MessageProps) {
                 rehypePlugins={[rehypeInlineCodeProperty]}
                 components={{
                   code: CodeBlock,
+                  a: ({ href, children, ...props }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      {...props}
+                    >
+                      {children}
+                    </a>
+                  ),
                 }}
               >
                 {part.text}
