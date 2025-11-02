@@ -56,7 +56,7 @@ const MODELS = [
 
 const AVAILABLE_TOOLS = [
   {
-    key: "web-search",
+    key: "webSearch",
     name: "Web Search",
     description: "Powered by Exa",
     icon: <LucideSearch className="size-4" />,
@@ -367,7 +367,11 @@ export default function ChatInput({
                     {AVAILABLE_TOOLS.map((tool) => (
                       <ListboxItem
                         key={tool.key}
-                        startContent={tool.icon}
+                        startContent={
+                          <div className="size-8 flex justify-center items-center bg-default-200 rounded-full shrink-0">
+                            {tool.icon}
+                          </div>
+                        }
                         endContent={
                           <Switch
                             isSelected={(config.tools || []).includes(tool.key)}
@@ -377,6 +381,7 @@ export default function ChatInput({
                         }
                         title={tool.name}
                         description={tool.description}
+                        onPress={() => toggleTool(tool.key)}
                       />
                     ))}
                   </Listbox>
