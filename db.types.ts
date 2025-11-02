@@ -11,25 +11,25 @@ export type Database = {
     Tables: {
       chats: {
         Row: {
+          config: Json
           created_at: string
           id: string
-          model: string
           name: string | null
           space_id: string
           user_id: string
         }
         Insert: {
+          config?: Json
           created_at?: string
           id?: string
-          model: string
           name?: string | null
           space_id: string
           user_id?: string
         }
         Update: {
+          config?: Json
           created_at?: string
           id?: string
-          model?: string
           name?: string | null
           space_id?: string
           user_id?: string
@@ -246,10 +246,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      insert_space_user: {
-        Args: { sid: string; uid: string }
-        Returns: boolean
-      }
       is_space_admin: { Args: { sid: string; uid: string }; Returns: boolean }
       is_space_reader: { Args: { sid: string; uid: string }; Returns: boolean }
       is_space_writer: { Args: { sid: string; uid: string }; Returns: boolean }

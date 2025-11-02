@@ -13,6 +13,7 @@ import type {
 } from "ai";
 import type { Json } from "db.types";
 import { stream } from "fetch-event-stream";
+import type { ChatConfig } from "json.types";
 import { customAlphabet } from "nanoid";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
@@ -277,28 +278,29 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
     },
   });
 
-  const updateModelMutation = useMutation({
-    mutationFn: async (newModel: string) => {
+  const updateConfigMutation = useMutation({
+    mutationFn: async (newConfig: ChatConfig) => {
       await supabase
         .from("chats")
-        .update({ model: newModel })
+        .update({ config: newConfig })
         .eq("id", chatId)
         .throwOnError();
     },
-    onMutate: async (newModel) => {
+    onMutate: async (newConfig) => {
       const previousChat = queryClient.getQueryData(["chat", chatId]);
 
       queryClient.setQueryData(["chat", chatId], (old) => {
         if (!old) return old;
-        return { ...old, model: newModel };
+
+        return { ...old, config: newConfig };
       });
 
       return { previousChat };
     },
-    onError: (_err, _newModel, context) => {
+    onError: (_err, _newConfig, context) => {
       addToast({
         title: "Error",
-        description: "Failed to update model. Please try again.",
+        description: "Failed to update chat config. Please try again.",
         color: "danger",
       });
 
@@ -365,8 +367,8 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
         style={style}
         send={sendMutation.mutate}
         sending={sendMutation.isPending}
-        model={chat?.model || "gpt-5-chat"}
-        onModelChange={updateModelMutation.mutate}
+        config={chat?.config as ChatConfig}
+        setConfig={updateConfigMutation.mutate}
       />
     </div>
   );

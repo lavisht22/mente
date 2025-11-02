@@ -13,6 +13,7 @@ import { createAzure } from "@ai-sdk/azure";
 import { createVertex } from "@ai-sdk/google-vertex/edge";
 import { createClient } from "@supabase/supabase-js";
 import { Database, Json } from "db.types";
+import { ChatConfig } from "json.types";
 import { z } from "zod";
 import { Exa } from "exa-js";
 
@@ -121,6 +122,20 @@ Deno.serve(async (req) => {
   }
 
   const messages = data.messages.reverse().map((m) => m.data as ModelMessage);
+  const config = data.config as ChatConfig;
+
+  if (!config.model) {
+    return new Response(
+      JSON.stringify({ error: "Chat config model is not set" }),
+      {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      },
+    );
+  }
 
   // Transform messages to convert Supabase storage paths to signed URLs
   const transformedMessages = await Promise.all(
@@ -179,7 +194,7 @@ Deno.serve(async (req) => {
   const body = new ReadableStream({
     async start(controller) {
       const result = await streamText({
-        model: getAIChatModel(data.model),
+        model: getAIChatModel(config.model!),
         tools: {
           webSearch: tool({
             description: "Search the internet for up-to-date information.",

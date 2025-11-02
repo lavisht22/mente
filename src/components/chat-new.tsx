@@ -2,6 +2,7 @@ import supabase from "@/lib/supabase";
 import { useMutation } from "@tanstack/react-query";
 import type { FilePart, ImagePart, UserModelMessage } from "ai";
 import type { Json } from "db.types";
+import type { ChatConfig } from "json.types";
 import { customAlphabet } from "nanoid";
 import { useState } from "react";
 import ChatInput from "./chat-input";
@@ -19,7 +20,10 @@ export default function ChatNew({
   style = "normal",
   setChatId,
 }: ChatProps) {
-  const [model, setModel] = useState("gpt-5-chat");
+  const [config, setConfig] = useState<ChatConfig>({
+    model: "gpt-5-chat",
+    tools: [],
+  });
 
   const createChatMutation = useMutation({
     mutationFn: async (payload: {
@@ -32,7 +36,7 @@ export default function ChatNew({
       const { data: chat, error: chatError } = await supabase
         .from("chats")
         .insert({
-          model,
+          config,
           space_id: spaceId,
         })
         .select()
@@ -124,8 +128,8 @@ export default function ChatNew({
         style={style}
         send={createChatMutation.mutate}
         sending={createChatMutation.isPending}
-        model={model}
-        onModelChange={setModel}
+        config={config}
+        setConfig={setConfig}
       />
     </div>
   );

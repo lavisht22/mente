@@ -19,6 +19,7 @@ import {
   useDisclosure,
 } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
+import type { ChatConfig } from "json.types";
 
 import {
   LucideArrowUp,
@@ -117,10 +118,8 @@ interface ChatInputProps {
     clear: () => void;
   }) => void;
   sending: boolean;
-  model: string;
-  setModel: (value: string) => void;
-  tools: string[];
-  setTools: (tools: string[]) => void;
+  config: ChatConfig;
+  setConfig: (value: ChatConfig) => void;
 }
 
 export default function ChatInput({
@@ -128,10 +127,8 @@ export default function ChatInput({
   style,
   send,
   sending,
-  model,
-  setModel,
-  tools,
-  setTools,
+  config,
+  setConfig,
 }: ChatInputProps) {
   const [text, setText] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -244,15 +241,33 @@ export default function ChatInput({
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const toggleTool = (toolKey: string) => {
-    setTools((prev) => {
-      if (prev.includes(toolKey)) {
-        return prev.filter((tool) => tool !== toolKey);
+  const toggleTool = useCallback(
+    (toolKey: string) => {
+      if (!config.tools) {
+        setConfig({
+          ...config,
+          tools: [toolKey],
+        });
+
+        return;
       }
 
-      return [...prev, toolKey];
-    });
-  };
+      if (config.tools.includes(toolKey)) {
+        setConfig({
+          ...config,
+          tools: config.tools.filter((tool) => tool !== toolKey),
+        });
+
+        return;
+      }
+
+      setConfig({
+        ...config,
+        tools: [...config.tools, toolKey],
+      });
+    },
+    [config, setConfig],
+  );
 
   return (
     <div
@@ -355,7 +370,7 @@ export default function ChatInput({
                         startContent={tool.icon}
                         endContent={
                           <Switch
-                            isSelected={tools.includes(tool.key)}
+                            isSelected={(config.tools || []).includes(tool.key)}
                             onValueChange={() => toggleTool(tool.key)}
                             size="sm"
                           />
@@ -379,7 +394,7 @@ export default function ChatInput({
                     className="px-2 gap-2"
                     startContent={<LucideComponent className="size-4" />}
                   >
-                    {model}
+                    {config.model || "gpt-5-chat"}
                   </Button>
                 </DropdownTrigger>
 
@@ -387,7 +402,10 @@ export default function ChatInput({
                   aria-label="Models"
                   items={MODELS}
                   onAction={(key) => {
-                    setModel(key as string);
+                    setConfig({
+                      ...config,
+                      model: key as string,
+                    });
                     onOpenChange();
                   }}
                 >
