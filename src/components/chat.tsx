@@ -7,18 +7,20 @@ import type {
   AssistantModelMessage,
   FilePart,
   ImagePart,
+  ModelMessage,
   TextStreamPart,
   Tool,
   UserModelMessage,
 } from "ai";
-import type { Json } from "db.types";
+import type { Json, Tables } from "db.types";
 import { stream } from "fetch-event-stream";
 import type { ChatConfig } from "json.types";
 import { customAlphabet } from "nanoid";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
+import AssistantMessage from "./chat-assistant-message";
 import ChatInput from "./chat-input";
-import Message, { type MessageT } from "./chat-message";
+import UserMessage from "./chat-user-message";
 import Logo from "./logo";
 
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
@@ -83,7 +85,7 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
                 role: "assistant",
                 content: [parsed],
               },
-            } as MessageT,
+            },
           ];
         });
       }
@@ -100,7 +102,7 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
                 role: "tool",
                 content: [parsed],
               },
-            } as MessageT,
+            },
           ];
         });
       }
@@ -126,7 +128,7 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
                   },
                 ],
               },
-            } as MessageT,
+            },
           ];
         });
       }
@@ -136,7 +138,7 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
         if (!messageId) continue;
 
         queryClient.setQueryData(["chat_messages", chatId], (old) => {
-          return (old as MessageT[]).map((message) => {
+          return (old as Tables<"messages">[]).map((message) => {
             if (message.id !== messageId) {
               return message;
             }
@@ -313,7 +315,11 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
   useEffect(() => {
     if (sendMutation.isPending) return;
 
-    const lastMessage = messages?.[messages.length - 1] as MessageT;
+    const lastMessage = messages?.[
+      messages.length - 1
+    ] as Tables<"messages"> & {
+      data: ModelMessage;
+    };
 
     if (lastMessage?.data.role === "user") {
       sendMutation.mutate(undefined);
@@ -337,20 +343,36 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
           data={messages}
           initialTopMostItemIndex={messages && messages.length - 1}
           followOutput="auto"
-          itemContent={(index, message) => {
-            return (
-              <div key={message.id} className="w-full max-w-2xl mx-auto p-6">
-                <Message
-                  key={message.id}
-                  message={message as MessageT}
-                  loading={
-                    messages
-                      ? index === messages.length - 1 && generating
-                      : false
-                  }
-                />
-              </div>
-            );
+          itemContent={(index, rawMessage) => {
+            const message = rawMessage as Tables<"messages"> & {
+              data: ModelMessage;
+            };
+            const { role } = message.data;
+
+            if (role === "user") {
+              return (
+                <div key={message.id} className="w-full max-w-2xl mx-auto p-6">
+                  <UserMessage message={message} />
+                </div>
+              );
+            }
+
+            if (role === "assistant") {
+              return (
+                <div key={message.id} className="w-full max-w-2xl mx-auto p-6">
+                  <AssistantMessage
+                    message={message}
+                    loading={
+                      messages
+                        ? index === messages.length - 1 && generating
+                        : false
+                    }
+                  />
+                </div>
+              );
+            }
+
+            return <div key={message.id} className="h-[1px]" />;
           }}
           components={{
             Footer: () => (

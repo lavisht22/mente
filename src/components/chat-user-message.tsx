@@ -16,8 +16,8 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import type { FilePart, ImagePart } from "ai";
-import type { Json } from "db.types";
+import type { FilePart, ImagePart, ModelMessage } from "ai";
+import type { Json, Tables } from "db.types";
 import {
   ChevronDown,
   LucideCopy,
@@ -25,11 +25,9 @@ import {
   LucidePencil,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { MessageT } from "./chat-message";
 
 interface MessageProps {
-  message: MessageT;
-  loading: boolean;
+  message: Tables<"messages"> & { data: ModelMessage };
 }
 
 function MessageEditor({

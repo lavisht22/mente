@@ -1,4 +1,6 @@
-import { Accordion, AccordionItem, Button, Tooltip } from "@heroui/react";
+import { Accordion, AccordionItem, Button, Tooltip, cn } from "@heroui/react";
+import type { ModelMessage } from "ai";
+import type { Tables } from "db.types";
 import {
   LucideCheck,
   LucideCopy,
@@ -6,11 +8,10 @@ import {
   LucidePlus,
   LucideRefreshCcw,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Markdown from "react-markdown";
 import { rehypeInlineCodeProperty } from "react-shiki";
 import remarkGfm from "remark-gfm";
-import type { MessageT } from "./chat-message";
 import CodeBlock from "./code-block";
 
 interface MessageActionsProps {
@@ -82,13 +83,13 @@ function MessageActions({ messageText }: MessageActionsProps) {
 }
 
 interface MessageProps {
-  message: MessageT;
+  message: Tables<"messages"> & { data: ModelMessage };
   loading: boolean;
 }
 
 export default function AssistantMessage({ message, loading }: MessageProps) {
   // Extract text content from message
-  const getMessageText = () => {
+  const getMessageText = useCallback(() => {
     if (typeof message.data.content === "string") {
       return message.data.content;
     }
@@ -97,7 +98,7 @@ export default function AssistantMessage({ message, loading }: MessageProps) {
       .filter((part) => part.type === "text")
       .map((part) => (part.type === "text" ? part.text : ""))
       .join("\n\n");
-  };
+  }, [message.data.content]);
 
   if (typeof message.data.content === "string") {
     return (
@@ -126,14 +127,22 @@ export default function AssistantMessage({ message, loading }: MessageProps) {
       </div>
     );
   }
+
   return (
     <div>
       {message.data.content.map((part, index) => {
+        const nextPart =
+          typeof message.data.content !== "string"
+            ? message.data.content[index + 1]
+            : null;
+
         if (part.type === "text") {
           return (
             <div
               key={`${message.id}text${index}`}
-              className="gap-4 w-full overflow-hidden prose"
+              className={cn("gap-4 w-full overflow-hidden prose", {
+                "mb-4": nextPart && nextPart.type !== "text",
+              })}
             >
               <Markdown
                 remarkPlugins={[remarkGfm]}
@@ -188,7 +197,10 @@ export default function AssistantMessage({ message, loading }: MessageProps) {
           );
         }
       })}
-      {loading === false && <MessageActions messageText={getMessageText()} />}
+
+      {loading === false &&
+        message.data.content.filter((part) => part.type === "text").length >
+          0 && <MessageActions messageText={getMessageText()} />}
     </div>
   );
 }
