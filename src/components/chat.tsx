@@ -20,6 +20,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import AssistantMessage from "./chat-assistant-message";
 import ChatInput from "./chat-input";
+import ToolMessage from "./chat-tool-message";
 import UserMessage from "./chat-user-message";
 import Logo from "./logo";
 
@@ -359,7 +360,7 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
 
             if (role === "assistant") {
               return (
-                <div key={message.id} className="w-full max-w-2xl mx-auto p-6">
+                <div key={message.id} className="w-full max-w-2xl mx-auto px-6">
                   <AssistantMessage
                     message={message}
                     loading={
@@ -368,6 +369,14 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
                         : false
                     }
                   />
+                </div>
+              );
+            }
+
+            if (role === "tool") {
+              return (
+                <div key={message.id} className="w-full max-w-2xl mx-auto px-6">
+                  <ToolMessage message={message} />
                 </div>
               );
             }

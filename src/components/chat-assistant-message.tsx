@@ -1,5 +1,15 @@
-import { Accordion, AccordionItem, Button, Tooltip, cn } from "@heroui/react";
-import type { ModelMessage } from "ai";
+import { AVAILABLE_TOOLS } from "@/lib/tools";
+import {
+  Button,
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerHeader,
+  Tooltip,
+  cn,
+  useDisclosure,
+} from "@heroui/react";
+import type { ModelMessage, TextPart, ToolCallPart } from "ai";
 import type { Tables } from "db.types";
 import {
   LucideCheck,
@@ -8,11 +18,55 @@ import {
   LucidePlus,
   LucideRefreshCcw,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Markdown from "react-markdown";
 import { rehypeInlineCodeProperty } from "react-shiki";
 import remarkGfm from "remark-gfm";
 import CodeBlock from "./code-block";
+
+function ToolCall({ part }: { part: ToolCallPart }) {
+  const { isOpen, onOpenChange } = useDisclosure();
+
+  const tool = useMemo(() => {
+    return AVAILABLE_TOOLS.find((t) => t.key === part.toolName);
+  }, [part.toolName]);
+
+  if (!tool) {
+    return null;
+  }
+
+  return (
+    <>
+      <Button
+        variant="light"
+        size="sm"
+        startContent={<tool.icon className="size-4" />}
+        onPress={onOpenChange}
+      >
+        {tool.name} started
+      </Button>
+      <Drawer
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        backdrop="blur"
+        placement="bottom"
+        size="xl"
+      >
+        <DrawerContent>
+          <DrawerHeader className="flex flex-col">
+            <p>{tool.name}</p>
+            <p className="text-sm font-normal">{part.toolCallId}</p>
+          </DrawerHeader>
+          <DrawerBody>
+            <pre className="whitespace-pre-wrap">
+              <code>{JSON.stringify(part.input, null, 2)}</code>
+            </pre>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
+    </>
+  );
+}
 
 interface MessageActionsProps {
   messageText: string;
@@ -100,49 +154,40 @@ export default function AssistantMessage({ message, loading }: MessageProps) {
       .join("\n\n");
   }, [message.data.content]);
 
-  if (typeof message.data.content === "string") {
-    return (
-      <div className="w-full">
-        <div className="gap-4 w-full overflow-hidden prose">
-          <Markdown
-            components={{
-              a: ({ href, children, ...props }) => (
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  {...props}
-                >
-                  {children}
-                </a>
-              ),
-            }}
-          >
-            {message.data.content}
-          </Markdown>
-        </div>
-        {loading === false && (
-          <MessageActions messageText={message.data.content} />
-        )}
-      </div>
-    );
-  }
+  const textParts = useMemo(() => {
+    if (typeof message.data.content === "string") {
+      return [
+        {
+          type: "text",
+          text: message.data.content,
+          providerOptions: message.data.providerOptions,
+        },
+      ] as TextPart[];
+    }
+
+    return message.data.content.filter(
+      (part) => part.type === "text",
+    ) as TextPart[];
+  }, [message]);
+
+  const toolCallParts = useMemo(() => {
+    if (typeof message.data.content === "string") {
+      return [];
+    }
+
+    return message.data.content.filter(
+      (part) => part.type === "tool-call",
+    ) as ToolCallPart[];
+  }, [message]);
 
   return (
     <div>
-      {message.data.content.map((part, index) => {
-        const nextPart =
-          typeof message.data.content !== "string"
-            ? message.data.content[index + 1]
-            : null;
-
-        if (part.type === "text") {
-          return (
+      {textParts.length > 0 && (
+        <div className="py-6">
+          {textParts.map((part, index) => (
             <div
               key={`${message.id}text${index}`}
-              className={cn("gap-4 w-full overflow-hidden prose", {
-                "mb-4": nextPart && nextPart.type !== "text",
-              })}
+              className={cn("gap-4 w-full overflow-hidden prose", {})}
             >
               <Markdown
                 remarkPlugins={[remarkGfm]}
@@ -164,45 +209,19 @@ export default function AssistantMessage({ message, loading }: MessageProps) {
                 {part.text}
               </Markdown>
             </div>
-          );
-        }
+          ))}
 
-        if (part.type === "tool-call") {
-          return (
-            <Accordion
-              key={`${message.id}tool-call${part.toolCallId}`}
-              variant="splitted"
-            >
-              <AccordionItem
-                classNames={{
-                  trigger: "py-2",
-                  title: "font-mono text-sm",
-                  base: "-ml-2 -mr-2",
-                }}
-                textValue={part.toolName}
-                key={part.toolCallId}
-                title={
-                  <span>
-                    Using{" "}
-                    <span className="underline underline-offset-2">
-                      {part.toolName}
-                    </span>{" "}
-                    tool
-                  </span>
-                }
-              >
-                <pre>
-                  <code>{JSON.stringify(part.input, null, 2)}</code>
-                </pre>
-              </AccordionItem>
-            </Accordion>
-          );
-        }
-      })}
+          {loading === false && (
+            <MessageActions messageText={getMessageText()} />
+          )}
+        </div>
+      )}
 
-      {loading === false &&
-        message.data.content.filter((part) => part.type === "text").length >
-          0 && <MessageActions messageText={getMessageText()} />}
+      <div>
+        {toolCallParts.map((part) => (
+          <ToolCall key={part.toolCallId} part={part} />
+        ))}
+      </div>
     </div>
   );
 }

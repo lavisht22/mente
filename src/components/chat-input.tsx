@@ -1,4 +1,5 @@
 import { spaceQuery } from "@/lib/queries";
+import { AVAILABLE_TOOLS } from "@/lib/tools";
 import {
   Button,
   Card,
@@ -28,7 +29,6 @@ import {
   LucideLayers,
   LucideLightbulb,
   LucidePaperclip,
-  LucideSearch,
   LucideSettings2,
   LucideX,
 } from "lucide-react";
@@ -51,15 +51,6 @@ const MODELS = [
   {
     key: "gemini-2.5-flash",
     thinking: true,
-  },
-];
-
-const AVAILABLE_TOOLS = [
-  {
-    key: "webSearch",
-    name: "Web Search",
-    description: "Powered by Exa",
-    icon: <LucideSearch className="size-4" />,
   },
 ];
 
@@ -369,7 +360,7 @@ export default function ChatInput({
                         key={tool.key}
                         startContent={
                           <div className="size-8 flex justify-center items-center bg-default-200 rounded-full shrink-0">
-                            {tool.icon}
+                            <tool.icon className="size-4" />
                           </div>
                         }
                         endContent={
