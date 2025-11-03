@@ -191,7 +191,9 @@ export default function AssistantMessage({ message, loading }: MessageProps) {
                   </span>
                 }
               >
-                ToolContent
+                <pre>
+                  <code>{JSON.stringify(part.input, null, 2)}</code>
+                </pre>
               </AccordionItem>
             </Accordion>
           );
