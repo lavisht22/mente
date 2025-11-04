@@ -148,6 +148,7 @@ export const signedURLQuery = (bucket: string, path: string) =>
             return data.signedUrl;
         },
         enabled: !!path,
+        staleTime: 300 * 1000, // 300 seconds
     });
 
 export const spaceUsersQuery = (spaceId: string) =>

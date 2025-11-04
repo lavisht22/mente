@@ -157,15 +157,21 @@ export default function ChatInput({
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     const maxDocumentSize = 7 * 1024 * 1024; // 7MB in bytes for documents
+    const maxAudioSize = 25 * 1024 * 1024; // 25MB in bytes for audio files
     const maxImages = 50;
     const maxDocuments = 10;
+    const maxAudio = 5;
 
     // Categorize existing attachments
     const existingImages = attachments.filter((file) =>
       file.type.startsWith("image/"),
     );
     const existingDocuments = attachments.filter(
-      (file) => !file.type.startsWith("image/"),
+      (file) =>
+        !file.type.startsWith("image/") && !file.type.startsWith("audio/"),
+    );
+    const existingAudio = attachments.filter((file) =>
+      file.type.startsWith("audio/"),
     );
 
     // Filter and validate files
@@ -175,8 +181,16 @@ export default function ChatInput({
       const isImage = file.type.startsWith("image/");
       const isDocument =
         file.type === "application/pdf" || file.type === "text/plain";
+      const isAudio =
+        file.type === "audio/wav" ||
+        file.type === "audio/mp3" ||
+        file.type === "audio/mpeg" ||
+        file.type === "audio/aiff" ||
+        file.type === "audio/aac" ||
+        file.type === "audio/ogg" ||
+        file.type === "audio/flac";
 
-      if (!isImage && !isDocument) {
+      if (!isImage && !isDocument && !isAudio) {
         continue;
       }
 
@@ -190,6 +204,16 @@ export default function ChatInput({
         continue;
       }
 
+      // Check audio size limit (25MB for audio files)
+      if (isAudio && file.size > maxAudioSize) {
+        addToast({
+          title: "File too large",
+          description: `${file.name} exceeds the 25MB limit for audio files.`,
+          color: "danger",
+        });
+        continue;
+      }
+
       validFiles.push(file);
     }
 
@@ -198,7 +222,11 @@ export default function ChatInput({
       file.type.startsWith("image/"),
     );
     const newDocuments = validFiles.filter(
-      (file) => !file.type.startsWith("image/"),
+      (file) =>
+        !file.type.startsWith("image/") && !file.type.startsWith("audio/"),
+    );
+    const newAudio = validFiles.filter((file) =>
+      file.type.startsWith("audio/"),
     );
 
     // Check image count limit
@@ -216,6 +244,16 @@ export default function ChatInput({
       addToast({
         title: "Too many documents",
         description: `You can only attach up to ${maxDocuments} documents (PDFs and text files) at a time.`,
+        color: "danger",
+      });
+      return;
+    }
+
+    // Check audio count limit
+    if (existingAudio.length + newAudio.length > maxAudio) {
+      addToast({
+        title: "Too many audio files",
+        description: `You can only attach up to ${maxAudio} audio files at a time.`,
         color: "danger",
       });
       return;
@@ -324,7 +362,7 @@ export default function ChatInput({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*,application/pdf,text/plain"
+                accept="image/*,application/pdf,text/plain,audio/wav,audio/mp3,audio/mpeg,audio/aiff,audio/aac,audio/ogg,audio/flac"
                 multiple
                 className="hidden"
                 onChange={handleFileSelect}

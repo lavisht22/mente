@@ -11,11 +11,7 @@ import {
   Textarea,
   cn,
 } from "@heroui/react";
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FilePart, ImagePart, ModelMessage } from "ai";
 import type { Json, Tables } from "db.types";
 import {
@@ -140,7 +136,7 @@ function MessagePreview({ text }: { text: string }) {
 }
 
 function Preview({ attachment }: { attachment: ImagePart | FilePart }) {
-  const { data, isPending, isError } = useSuspenseQuery(
+  const { data, isPending, isError } = useQuery(
     signedURLQuery(
       "chats",
       attachment.type === "image"
