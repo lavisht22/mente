@@ -18,30 +18,42 @@ function RouteComponent() {
   const { data: space } = useQuery(spaceQuery(spaceId));
   const { data: items } = useQuery(spaceItemsQuery(spaceId));
 
-  // Group items by date
+  // Group items by month
   const groupedItems = useMemo(() => {
     if (!items) return {};
 
     const groups: Record<string, Tables<"items">[]> = {};
 
     for (const item of items) {
-      const date = new Date(item.created_at).toLocaleDateString("en-US", {
+      const date = new Date(item.created_at);
+      const monthKey = date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
-        day: "numeric",
       });
 
-      if (!groups[date]) {
-        groups[date] = [];
+      if (!groups[monthKey]) {
+        groups[monthKey] = [];
       }
-      groups[date].push(item);
+      groups[monthKey].push(item);
+    }
+
+    // Sort items within each month by date (latest first)
+    for (const monthKey in groups) {
+      groups[monthKey].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
     }
 
     return groups;
   }, [items]);
 
-  // Get sorted date keys (already in descending order from query)
-  const dateKeys = Object.keys(groupedItems);
+  // Get sorted month keys (most recent first)
+  const monthKeys = Object.keys(groupedItems).sort((a, b) => {
+    const dateA = new Date(`${a} 1`);
+    const dateB = new Date(`${b} 1`);
+    return dateB.getTime() - dateA.getTime();
+  });
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -72,17 +84,17 @@ function RouteComponent() {
       <div className="p-6 flex-1 overflow-auto">
         <h1 className="text-3xl mb-8">{space?.name}</h1>
 
-        {dateKeys.length === 0 ? (
+        {monthKeys.length === 0 ? (
           <div className="text-center text-default-400 py-12">
             No items in this space yet
           </div>
         ) : (
           <div className="flex flex-col gap-8">
-            {dateKeys.map((date) => (
-              <div key={date} className="flex flex-col gap-4">
-                <p className="text-default-700">{date}</p>
+            {monthKeys.map((month) => (
+              <div key={month} className="flex flex-col gap-4">
+                <p className="text-default-700">{month}</p>
                 <div className="flex gap-4 flex-wrap">
-                  {groupedItems[date].map((item) => (
+                  {groupedItems[month].map((item) => (
                     <Item key={item.id} {...item} />
                   ))}
                 </div>
