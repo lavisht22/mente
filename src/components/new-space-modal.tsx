@@ -58,6 +58,7 @@ export default function NewSpaceModal({
       onOpenChange={onOpenChange}
       hideCloseButton
       backdrop="blur"
+      placement="top"
     >
       <ModalContent>
         <ModalHeader>Create New Space</ModalHeader>
