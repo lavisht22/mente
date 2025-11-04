@@ -48,5 +48,6 @@
   },
   "search.exclude": {
     "**/routeTree.gen.ts": true
-  }
+  },
+  "editor.accessibilitySupport": "off"
 }

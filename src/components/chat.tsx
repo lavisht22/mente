@@ -24,7 +24,7 @@ import type { Json, Tables } from "db.types";
 import { stream } from "fetch-event-stream";
 import type { ChatConfig } from "json.types";
 import { customAlphabet } from "nanoid";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import ChatInput from "./chat-input";
 import ChatMessage from "./chat-message";
@@ -48,8 +48,38 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
     ...chatMessagesQuery(chatId || ""),
   });
 
+  const groups = useMemo(() => {
+    if (!messages || messages.length === 0) return [];
+
+    const groups: Array<Tables<"messages">[]> = [];
+    let currentGroup: Tables<"messages">[] = [];
+
+    for (const message of messages) {
+      const messageData = message.data as ModelMessage;
+
+      if (messageData.role === "user") {
+        // Start a new group when we encounter a user message
+        if (currentGroup.length > 0) {
+          groups.push(currentGroup);
+        }
+        currentGroup = [message];
+      } else {
+        // Add assistant/tool messages to the current group
+        currentGroup.push(message);
+      }
+    }
+
+    // Don't forget to push the last group
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup);
+    }
+
+    return groups;
+  }, [messages]);
+
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<unknown | null>(null);
+  const [listHeight, setListHeight] = useState<number | null>(null);
 
   const continueChat = useCallback(async () => {
     const abort = new AbortController();
@@ -268,15 +298,16 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
 
           clear();
 
-          // Always scroll to bottom when user sends a message
-          if (virtuoso.current) {
-            console.log("Scrolling to bottom");
-            virtuoso.current.scrollToIndex({
-              index: Number.POSITIVE_INFINITY,
-              align: "end",
-              behavior: "smooth",
-            });
-          }
+          setTimeout(() => {
+            if (virtuoso.current) {
+              console.log("Scrolling to bottom");
+              virtuoso.current.scrollToIndex({
+                index: groups.length,
+                align: "start",
+                behavior: "smooth",
+              });
+            }
+          }, 200);
         }
 
         setGenerating(true);
@@ -352,54 +383,80 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex-1">
+      <div
+        className="flex-1"
+        ref={(el) => {
+          if (el && listHeight === null) {
+            setListHeight(el.clientHeight);
+          }
+        }}
+      >
         <Virtuoso
           ref={virtuoso}
           className="h-full"
-          data={messages}
-          initialTopMostItemIndex={messages && messages.length - 1}
-          itemContent={(index, rawMessage) => {
-            return (
-              <div key={rawMessage.id}>
-                <ChatMessage
-                  rawMessage={rawMessage}
-                  loading={
-                    messages
-                      ? index === messages.length - 1 && generating
-                      : false
-                  }
-                />
-              </div>
-            );
+          data={groups}
+          initialTopMostItemIndex={groups.length - 1}
+          rangeChanged={(range) => {
+            if (range && virtuoso.current) {
+              const element = virtuoso.current as unknown as {
+                scrollerRef?: HTMLElement;
+              };
+              if (element.scrollerRef) {
+                setListHeight(element.scrollerRef.clientHeight);
+              }
+            }
           }}
-          components={{
-            Footer: () => (
-              <div className="w-full max-w-2xl mx-auto px-4 min-h-16 flex items-center">
-                {generating && <Logo animation={true} />}
-                {error !== null && (
-                  <Alert
-                    color="danger"
-                    className="w-full"
-                    title="Error"
-                    description="There was an error generating the response."
-                    endContent={
-                      <Popover placement="bottom-end">
-                        <PopoverTrigger>
-                          <Button color="danger" variant="flat" size="sm">
-                            Details
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="p-4">
-                          <pre className="whitespace-pre-wrap text-sm">
-                            {JSON.stringify(error, null, 2)}
-                          </pre>
-                        </PopoverContent>
-                      </Popover>
+          itemContent={(index, group) => {
+            const isLastGroup = index === groups.length - 1;
+
+            return (
+              <div
+                key={group[0].id}
+                style={
+                  listHeight && isLastGroup
+                    ? { minHeight: `${listHeight}px` }
+                    : {}
+                }
+              >
+                {group.map((rawMessage) => (
+                  <ChatMessage
+                    key={rawMessage.id}
+                    rawMessage={rawMessage}
+                    loading={
+                      messages
+                        ? rawMessage.id === messages[messages.length - 1].id &&
+                          generating
+                        : false
                     }
                   />
-                )}
+                ))}
+                <div className="max-w-2xl mx-auto px-6">
+                  {generating && isLastGroup && <Logo animation={true} />}
+                  {error !== null && isLastGroup && (
+                    <Alert
+                      color="danger"
+                      className="w-full"
+                      title="Error"
+                      description="There was an error generating the response."
+                      endContent={
+                        <Popover placement="bottom-end">
+                          <PopoverTrigger>
+                            <Button color="danger" variant="flat" size="sm">
+                              Details
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="p-4">
+                            <pre className="whitespace-pre-wrap text-sm">
+                              {JSON.stringify(error, null, 2)}
+                            </pre>
+                          </PopoverContent>
+                        </Popover>
+                      }
+                    />
+                  )}
+                </div>
               </div>
-            ),
+            );
           }}
         />
       </div>
