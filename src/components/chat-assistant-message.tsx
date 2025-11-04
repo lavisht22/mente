@@ -181,7 +181,7 @@ export default function AssistantMessage({ message, loading }: MessageProps) {
   }, [message]);
 
   return (
-    <div>
+    <div className="w-full max-w-2xl mx-auto px-6">
       {textParts.length > 0 && (
         <div className="py-6">
           {textParts.map((part, index) => (

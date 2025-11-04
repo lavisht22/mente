@@ -75,7 +75,7 @@ export default function ToolMessage({ message }: MessageProps) {
   const data = message.data as ToolModelMessage;
 
   return (
-    <div>
+    <div className="w-full max-w-2xl mx-auto px-6">
       {data.content.map((part) => (
         <ToolResultPartDrawer key={part.toolCallId} part={part} />
       ))}

@@ -220,7 +220,7 @@ export default function UserMessage({ message }: MessageProps) {
   }, [message]);
 
   return (
-    <div className="flex flex-col items-end w-full">
+    <div className="flex flex-col items-end w-full max-w-2xl mx-auto p-6">
       {attachments.length > 0 && (
         <div className="mb-2 flex justify-end flex-wrap gap-2">
           {attachments.map((attachment, index) => {
