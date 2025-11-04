@@ -76,11 +76,14 @@ function MessageEditor({
     <div className="flex flex-col w-full gap-4">
       <Textarea
         variant="bordered"
+        className="bg-background"
         value={internalText}
         onValueChange={setInternalText}
       />
       <div className="flex justify-end gap-2">
-        <Button variant="light">Cancel</Button>
+        <Button variant="light" onPress={() => setEditing(false)}>
+          Cancel
+        </Button>
         <Button
           color="primary"
           onPress={() => updateMessageMutation.mutate(internalText)}

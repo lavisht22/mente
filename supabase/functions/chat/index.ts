@@ -202,94 +202,112 @@ Deno.serve(async (req) => {
     });
   }
 
-  const body = new ReadableStream({
-    async start(controller) {
-      const result = await streamText({
-        model: getAIChatModel(config.model!),
-        tools,
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful assistant. Always output in markdown.",
-          },
-          ...transformedMessages,
-        ],
-        stopWhen: stepCountIs(10),
-      });
+  try {
+    const result = streamText({
+      model: getAIChatModel(config.model!),
+      tools,
+      system: "You are a helpful assistant. Always output in markdown.",
+      messages: [
+        ...transformedMessages,
+      ],
+      stopWhen: stepCountIs(10),
+    });
 
-      for await (const part of result.fullStream) {
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify(part)}\r\n\r\n`),
-        );
-      }
+    const body = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const part of result.fullStream) {
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify(part)}\r\n\r\n`),
+            );
+          }
 
-      const steps = await result.steps;
-      const lastStep = steps[steps.length - 1];
+          const steps = await result.steps;
+          let lastStep: typeof steps[0] | null = null;
 
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify(steps)}\r\n\r\n`),
-      );
+          if (steps.length > 0) {
+            lastStep = steps[steps.length - 1];
 
-      for (const message of lastStep.response.messages) {
-        await supabase.from("messages").insert({
-          chat_id,
-          data: message as Json,
-        });
-      }
+            for (const message of lastStep.response.messages) {
+              await supabase.from("messages").insert({
+                chat_id,
+                data: message as Json,
+              });
+            }
+          }
 
-      // Generate chat name if it doesn't exist
-      if (!data.name) {
-        const allMessages = [
-          ...messages,
-          ...lastStep.response.messages,
-        ] as ModelMessage[];
+          // Generate chat name if it doesn't exist
+          if (!data.name) {
+            const allMessages = [
+              ...messages,
+            ] as ModelMessage[];
 
-        // Get the last 4 messages
-        const lastFewMessages = allMessages.slice(-4);
+            if (lastStep) {
+              allMessages.push(
+                ...lastStep.response.messages,
+              );
+            }
 
-        if (lastFewMessages.length > 0) {
-          const { generateText } = await import("ai");
+            // Get the last 4 messages
+            const lastFewMessages = allMessages.slice(-4);
 
-          const nameResult = await generateText({
-            model: azure("gpt-5-chat"),
-            prompt:
-              `You are a helpful assistant that generates concise chat titles. Generate a short, descriptive title (max 6 words) for the conversation based on the following messages. Only output the title, nothing else.\n\nMessages:\n${
-                lastFewMessages.map((m) =>
-                  `${m.role}: ${JSON.stringify(m.content)}`
-                ).join("\n")
-              }`,
-          });
+            if (lastFewMessages.length > 0) {
+              const { generateText } = await import("ai");
 
-          const generatedName = nameResult.text.trim();
+              const nameResult = await generateText({
+                model: azure("gpt-5-chat"),
+                prompt:
+                  `You are a helpful assistant that generates concise chat titles. Generate a short, descriptive title (max 6 words) for the conversation based on the following messages. Only output the title, nothing else.\n\nMessages:\n${
+                    lastFewMessages.map((m) =>
+                      `${m.role}: ${JSON.stringify(m.content)}`
+                    ).join("\n")
+                  }`,
+              });
 
-          // Send the generated name through the stream
-          controller.enqueue(
-            encoder.encode(
-              `data: ${
-                JSON.stringify({ type: "chat-name", name: generatedName })
-              }\r\n\r\n`,
-            ),
-          );
+              const generatedName = nameResult.text.trim();
 
-          // Store the generated name in the database
-          await supabase
-            .from("chats")
-            .update({ name: generatedName })
-            .eq("id", chat_id);
+              // Send the generated name through the stream
+              controller.enqueue(
+                encoder.encode(
+                  `data: ${
+                    JSON.stringify({ type: "chat-name", name: generatedName })
+                  }\r\n\r\n`,
+                ),
+              );
+
+              // Store the generated name in the database
+              await supabase
+                .from("chats")
+                .update({ name: generatedName })
+                .eq("id", chat_id);
+            }
+          }
+        } catch (error) {
+          console.error("Error during streaming:", error);
+        } finally {
+          controller.close();
         }
-      }
+      },
+      cancel() {
+        // TODO: Implement cancel here properly
+      },
+    });
 
-      controller.close();
-    },
-    cancel() {
-      // TODO: Implement cancel here properly
-    },
-  });
+    return new Response(body, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        ...corsHeaders,
+      },
+    });
+  } catch (error) {
+    console.error("Error in main handler:", error);
 
-  return new Response(body, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      ...corsHeaders,
-    },
-  });
+    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+        ...corsHeaders,
+      },
+    });
+  }
 });

@@ -1,7 +1,15 @@
 import { chatMessagesQuery, chatQuery } from "@/lib/queries";
 
 import supabase from "@/lib/supabase";
-import { Spinner, addToast } from "@heroui/react";
+import {
+  Alert,
+  Button,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Spinner,
+  addToast,
+} from "@heroui/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   AssistantModelMessage,
@@ -43,6 +51,7 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
   });
 
   const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<unknown | null>(null);
 
   const continueChat = useCallback(async () => {
     const abort = new AbortController();
@@ -73,6 +82,8 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
             [key: string]: Tool<unknown, unknown>;
           }>
         | { type: "chat-name"; name: string };
+
+      console.log(parsed);
 
       if (parsed.type === "tool-call") {
         queryClient.setQueryData(["chat_messages", chatId], (old) => {
@@ -171,9 +182,13 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
         queryClient.invalidateQueries({ queryKey: ["chat", chatId] });
       }
 
-      // if (!hasUserScrolledUpRef.current) {
-      //   scrollToBottom("smooth");
-      // }
+      if (parsed.type === "error") {
+        setError((parsed.error as { data: unknown }).data as unknown);
+      }
+
+      if (parsed.type === "tool-error") {
+        setError(parsed.error);
+      }
     }
   }, [chatId, queryClient]);
 
@@ -266,6 +281,7 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
         }
 
         setGenerating(true);
+        setError(null);
         await continueChat();
       } catch (error) {
         addToast({
@@ -314,7 +330,7 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
   });
 
   useEffect(() => {
-    if (sendMutation.isPending) return;
+    if (sendMutation.isPending || error) return;
 
     const lastMessage = messages?.[
       messages.length - 1
@@ -325,7 +341,7 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
     if (lastMessage?.data.role === "user") {
       sendMutation.mutate(undefined);
     }
-  }, [messages, sendMutation]);
+  }, [messages, sendMutation, error]);
 
   if (messagesLoading || chatLoading) {
     return (
@@ -385,8 +401,30 @@ export default function Chat({ spaceId, chatId, style = "normal" }: ChatProps) {
           }}
           components={{
             Footer: () => (
-              <div className="w-full max-w-2xl mx-auto px-4 h-16 flex items-center">
+              <div className="w-full max-w-2xl mx-auto px-4 min-h-16 flex items-center">
                 {generating && <Logo animation={true} />}
+                {error !== null && (
+                  <Alert
+                    color="danger"
+                    className="w-full"
+                    title="Error"
+                    description="There was an error generating the response."
+                    endContent={
+                      <Popover placement="bottom-end">
+                        <PopoverTrigger>
+                          <Button color="danger" variant="flat" size="sm">
+                            Details
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="p-4">
+                          <pre className="whitespace-pre-wrap text-sm">
+                            {JSON.stringify(error, null, 2)}
+                          </pre>
+                        </PopoverContent>
+                      </Popover>
+                    }
+                  />
+                )}
               </div>
             ),
           }}
