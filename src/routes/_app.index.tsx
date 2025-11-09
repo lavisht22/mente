@@ -1,5 +1,4 @@
 import Item from "@/components/item";
-import Nav from "@/components/nav";
 import Space from "@/components/space";
 import { itemsQuery, spacesQuery, userQuery } from "@/lib/queries";
 import { useQuery } from "@tanstack/react-query";
@@ -51,7 +50,6 @@ function RouteComponent() {
           ))}
         </div>
       </div>
-      <Nav />
     </div>
   );
 }
