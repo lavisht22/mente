@@ -7,6 +7,9 @@ import { useEffect, useRef, useState } from "react";
 import "@milkdown/crepe/theme/common/style.css";
 import "@milkdown/crepe/theme/frame.css";
 import "@/milkdown-theme.css";
+import { customAlphabet } from "nanoid";
+
+const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
 
 export default function NoteEditor({ item }: { item: Tables<"items"> }) {
   const [title, setTitle] = useState(item?.title ?? "");
@@ -67,6 +70,7 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
       const crepe = new Crepe({
         root: editorRef.current,
         defaultValue: item.markdown || "",
+
         features: {
           [Crepe.Feature.CodeMirror]: true,
           [Crepe.Feature.ListItem]: true,
@@ -77,6 +81,65 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
           [Crepe.Feature.Toolbar]: true,
           [Crepe.Feature.Cursor]: true,
           [Crepe.Feature.Placeholder]: true,
+        },
+
+        featureConfigs: {
+          "image-block": {
+            inlineOnUpload: async (file: File) => {
+              console.log("Inline Uploading file:", file);
+
+              const id = nanoid();
+
+              const { data, error } = await supabase.storage
+                .from("items")
+                .upload(`${item.id}/${id}-${file.name}`, file);
+
+              if (error) {
+                throw error;
+              }
+
+              if (!data) {
+                throw new Error("Upload failed");
+              }
+
+              return `file://${data.path}`; // Custom URL scheme to identify storage files
+            },
+            onUpload: async (file: File) => {
+              const id = nanoid();
+
+              const { data, error } = await supabase.storage
+                .from("items")
+                .upload(`${item.id}/${id}-${file.name}`, file);
+
+              if (error) {
+                throw error;
+              }
+
+              if (!data) {
+                throw new Error("Upload failed");
+              }
+
+              return `file://${data.path}`; // Custom URL scheme to identify storage files
+            },
+            proxyDomURL: async (url: string) => {
+              // Convert custom URL scheme to public URL
+              if (url.startsWith("file://")) {
+                const path = url.replace("file://", "");
+
+                const { data, error } = await supabase.storage
+                  .from("items")
+                  .createSignedUrl(path, 60);
+
+                if (error) {
+                  throw error;
+                }
+
+                return data.signedUrl;
+              }
+
+              return url;
+            },
+          },
         },
       });
 
