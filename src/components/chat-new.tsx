@@ -1,10 +1,11 @@
+import { userMetadataQuery } from "@/lib/queries";
 import supabase from "@/lib/supabase";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FilePart, ImagePart, UserModelMessage } from "ai";
 import type { Json } from "db.types";
 import type { ChatConfig } from "json.types";
 import { customAlphabet } from "nanoid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChatInput from "./chat-input";
 
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
@@ -20,10 +21,19 @@ export default function ChatNew({
   style = "normal",
   setChatId,
 }: ChatProps) {
+  const queryClient = useQueryClient();
+  const { data: userMetadata } = useQuery(userMetadataQuery);
+
   const [config, setConfig] = useState<ChatConfig>({
     model: "gpt-5-chat",
     tools: [],
   });
+
+  useEffect(() => {
+    if (userMetadata?.default_chat_config) {
+      setConfig(userMetadata.default_chat_config as ChatConfig);
+    }
+  }, [userMetadata]);
 
   const createChatMutation = useMutation({
     mutationFn: async (payload: {
@@ -105,10 +115,23 @@ export default function ChatNew({
 
       clear();
 
-      return { chat, message };
+      const {
+        data: { user },
+      } = await supabase.auth.updateUser({
+        data: {
+          ...userMetadata,
+          default_chat_config: config,
+        },
+      });
+
+      return { chat, message, user };
     },
-    onSuccess: ({ chat }) => {
+    onSuccess: ({ chat, user }) => {
       setChatId(chat.id);
+
+      if (user) {
+        queryClient.setQueryData(["user_metadata"], user.user_metadata);
+      }
     },
   });
 

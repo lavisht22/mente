@@ -185,18 +185,29 @@ export const usersQuery = queryOptions({
 export const userQuery = queryOptions({
     queryKey: ["user"],
     queryFn: async () => {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data } = await supabase.auth.getClaims();
 
-        if (!user) return null;
+        if (!data || !data.claims) return null;
 
-        const { data, error } = await supabase
+        const { data: user, error } = await supabase
             .from("users")
             .select("*")
-            .eq("id", user.id)
+            .eq("id", data.claims.sub)
             .single();
 
         if (error) throw error;
 
-        return data;
+        return user;
+    },
+});
+
+export const userMetadataQuery = queryOptions({
+    queryKey: ["user_metadata"],
+    queryFn: async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) return null;
+
+        return user.user_metadata;
     },
 });
