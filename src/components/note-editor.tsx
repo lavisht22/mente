@@ -1,11 +1,5 @@
 import supabase from "@/lib/supabase";
 import { Crepe } from "@milkdown/crepe";
-import {
-  type Uploader,
-  upload,
-  uploadConfig,
-} from "@milkdown/kit/plugin/upload";
-import type { Node } from "@milkdown/kit/prose/model";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Tables } from "db.types";
 import { useEffect, useRef, useState } from "react";
@@ -91,10 +85,11 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
     }
 
     const initEditor = async () => {
+      console.log("Initializing editor for item:", item.id);
+
       const crepe = new Crepe({
         root: editorRef.current,
         defaultValue: item.markdown || "",
-
         features: {
           [Crepe.Feature.CodeMirror]: true,
           [Crepe.Feature.ListItem]: true,
@@ -106,7 +101,6 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
           [Crepe.Feature.Cursor]: true,
           [Crepe.Feature.Placeholder]: true,
         },
-
         featureConfigs: {
           "image-block": {
             inlineOnUpload: async (file: File) => {
@@ -139,48 +133,6 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 
       crepeRef.current = crepe;
       currentItemId.current = item.id;
-
-      const uploader: Uploader = async (files, schema) => {
-        const images: File[] = [];
-
-        for (let i = 0; i < files.length; i++) {
-          const file = files.item(i);
-          if (!file) {
-            continue;
-          }
-
-          // You can handle whatever the file type you want, we handle image here.
-          if (!file.type.includes("image")) {
-            continue;
-          }
-
-          images.push(file);
-        }
-
-        const nodes: Node[] = await Promise.all(
-          images.map(async (image) => {
-            const src = await uploadFile(image, item.id);
-            const alt = image.name;
-            return schema.nodes.image.createAndFill({
-              src,
-              alt,
-            }) as Node;
-          }),
-        );
-
-        return nodes;
-      };
-
-      crepe.editor.config((ctx) => {
-        //@ts-ignore
-        return ctx.update(uploadConfig.key, (prev) => ({
-          ...prev,
-          uploader,
-        }));
-      });
-
-      // @ts-ignore
-      crepe.editor.use(upload);
 
       await crepe.create();
 
