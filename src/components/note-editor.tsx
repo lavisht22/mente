@@ -1,5 +1,11 @@
 import supabase from "@/lib/supabase";
 import { Crepe } from "@milkdown/crepe";
+import {
+  type Uploader,
+  upload,
+  uploadConfig,
+} from "@milkdown/kit/plugin/upload";
+import type { Node } from "@milkdown/kit/prose/model";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Tables } from "db.types";
 import { useEffect, useRef, useState } from "react";
@@ -10,6 +16,24 @@ import "@/milkdown-theme.css";
 import { customAlphabet } from "nanoid";
 
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
+
+const uploadFile = async (file: File, itemId: string): Promise<string> => {
+  const id = nanoid();
+
+  const { data, error } = await supabase.storage
+    .from("items")
+    .upload(`${itemId}/${id}-${file.name}`, file);
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data) {
+    throw new Error("Upload failed");
+  }
+
+  return `storage://${data.path}`; // Custom URL scheme to identify storage files
+};
 
 export default function NoteEditor({ item }: { item: Tables<"items"> }) {
   const [title, setTitle] = useState(item?.title ?? "");
@@ -86,45 +110,15 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
         featureConfigs: {
           "image-block": {
             inlineOnUpload: async (file: File) => {
-              console.log("Inline Uploading file:", file);
-
-              const id = nanoid();
-
-              const { data, error } = await supabase.storage
-                .from("items")
-                .upload(`${item.id}/${id}-${file.name}`, file);
-
-              if (error) {
-                throw error;
-              }
-
-              if (!data) {
-                throw new Error("Upload failed");
-              }
-
-              return `file://${data.path}`; // Custom URL scheme to identify storage files
+              return uploadFile(file, item.id);
             },
             onUpload: async (file: File) => {
-              const id = nanoid();
-
-              const { data, error } = await supabase.storage
-                .from("items")
-                .upload(`${item.id}/${id}-${file.name}`, file);
-
-              if (error) {
-                throw error;
-              }
-
-              if (!data) {
-                throw new Error("Upload failed");
-              }
-
-              return `file://${data.path}`; // Custom URL scheme to identify storage files
+              return uploadFile(file, item.id);
             },
             proxyDomURL: async (url: string) => {
               // Convert custom URL scheme to public URL
-              if (url.startsWith("file://")) {
-                const path = url.replace("file://", "");
+              if (url.startsWith("storage://")) {
+                const path = url.replace("storage://", "");
 
                 const { data, error } = await supabase.storage
                   .from("items")
@@ -145,6 +139,48 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 
       crepeRef.current = crepe;
       currentItemId.current = item.id;
+
+      const uploader: Uploader = async (files, schema) => {
+        const images: File[] = [];
+
+        for (let i = 0; i < files.length; i++) {
+          const file = files.item(i);
+          if (!file) {
+            continue;
+          }
+
+          // You can handle whatever the file type you want, we handle image here.
+          if (!file.type.includes("image")) {
+            continue;
+          }
+
+          images.push(file);
+        }
+
+        const nodes: Node[] = await Promise.all(
+          images.map(async (image) => {
+            const src = await uploadFile(image, item.id);
+            const alt = image.name;
+            return schema.nodes.image.createAndFill({
+              src,
+              alt,
+            }) as Node;
+          }),
+        );
+
+        return nodes;
+      };
+
+      crepe.editor.config((ctx) => {
+        //@ts-ignore
+        return ctx.update(uploadConfig.key, (prev) => ({
+          ...prev,
+          uploader,
+        }));
+      });
+
+      // @ts-ignore
+      crepe.editor.use(upload);
 
       await crepe.create();
 
