@@ -1,0 +1,12 @@
+.bn-container[data-custom] .bn-editor {
+  font-family: DM Sans, sans-serif;
+}
+
+.bn-container[data-custom][data-color-scheme] {
+  --bn-colors-editor-background: transparent;
+  --bn-font-family: DM Sans, sans-serif;
+}
+
+.bn-container[data-custom][data-color-scheme="dark"] {
+  --bn-colors-editor-background: transparent;
+}

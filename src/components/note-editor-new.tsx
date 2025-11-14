@@ -1,4 +1,4 @@
-import "@blocknote/core/fonts/inter.css";
+// import "@blocknote/core/fonts/inter.css";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import supabase from "@/lib/supabase";
@@ -7,6 +7,7 @@ import { BlockNoteEditor } from "@blocknote/core";
 import type { Tables } from "db.types";
 import { useEffect, useState } from "react";
 import * as Y from "yjs";
+import "@/bn-theme.css";
 
 export default function NoteEditor({ item }: { item: Tables<"items"> }) {
   const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
@@ -46,5 +47,5 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
     return null;
   }
 
-  return <BlockNoteView editor={editor} />;
+  return <BlockNoteView editor={editor} data-custom />;
 }

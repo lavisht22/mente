@@ -4,6 +4,7 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
+  addToast,
 } from "@heroui/react";
 import {
   queryOptions,
@@ -12,7 +13,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import ConfirmationModal from "@/components/confirmation-modal";
 
@@ -53,6 +54,8 @@ function RouteComponent() {
   const { data: item } = useQuery(itemQuery(itemId));
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [title, setTitle] = useState(item?.title ?? "");
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -81,6 +84,39 @@ function RouteComponent() {
       if (context?.previousItem) {
         queryClient.setQueryData(["item", itemId], context.previousItem);
       }
+    },
+  });
+
+  const updateTitleMutation = useMutation({
+    mutationFn: async (newTitle: string) => {
+      // Optimistically update title in UI
+      setTitle(newTitle);
+
+      const { error } = await supabase
+        .from("items")
+        .update({ title: newTitle, updated_at: new Date().toISOString() })
+        .eq("id", itemId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(
+        ["item", itemId],
+        (oldItem: Tables<"items"> | undefined) => {
+          if (!oldItem) return oldItem;
+          return { ...oldItem, title };
+        },
+      );
+    },
+    onError: (_err) => {
+      addToast({
+        title: "Error",
+        description: "Failed to update title.",
+        color: "danger",
+      });
+
+      // Revert title on error
+      setTitle(item?.title ?? "");
     },
   });
 
@@ -120,6 +156,18 @@ function RouteComponent() {
       </div>
 
       <div className="p-8 flex-1 overflow-y-auto">
+        <h1
+          ref={titleRef}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={(e) =>
+            updateTitleMutation.mutate(e.currentTarget.textContent ?? "")
+          }
+          // onKeyDown={handleTitleKeyDown}
+          className="text-[42px] font-weight-[400] outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+          data-placeholder="Title"
+          aria-label="Note title"
+        />
         {item?.type === "note" && <NoteEditor item={item} />}
       </div>
 
