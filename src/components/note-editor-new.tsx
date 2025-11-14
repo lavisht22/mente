@@ -5,20 +5,16 @@ import supabase from "@/lib/supabase";
 import SupabaseProvider from "@/lib/y-supabase";
 import { useCreateBlockNote } from "@blocknote/react";
 import type { Tables } from "db.types";
+import { useEffect, useState } from "react";
 import * as Y from "yjs";
 
-const doc = new Y.Doc();
-
-const provider = new SupabaseProvider(doc, supabase, {
-  channel: "02f1999d-0a79-45ed-9228-84c79ec0b365",
-  id: "02f1999d-0a79-45ed-9228-84c79ec0b365",
-  tableName: "items",
-  columnName: "ydoc",
-  resyncInterval: 60 * 1000, // 1 minute
-});
-
-export default function NoteEditorNew({ item }: { item: Tables<"items"> }) {
-  // Creates a new editor instance.
+function Editor({
+  provider,
+  doc,
+}: {
+  doc: Y.Doc;
+  provider: SupabaseProvider;
+}) {
   const editor = useCreateBlockNote({
     collaboration: {
       fragment: doc.getXmlFragment("document-store"),
@@ -31,6 +27,36 @@ export default function NoteEditorNew({ item }: { item: Tables<"items"> }) {
     },
   });
 
-  // Renders the editor instance using a React component.
   return <BlockNoteView editor={editor} />;
+}
+
+export default function NoteEditor({ item }: { item: Tables<"items"> }) {
+  const [doc, setDoc] = useState<Y.Doc | null>(null);
+  const [provider, setProvider] = useState<SupabaseProvider | null>(null);
+
+  useEffect(() => {
+    const doc = new Y.Doc();
+
+    const newProvider = new SupabaseProvider(doc, supabase, {
+      channel: item.id,
+      id: item.id,
+      tableName: "items",
+      columnName: "ydoc",
+      resyncInterval: 60 * 1000, // 1 minute
+    });
+
+    setDoc(doc);
+    setProvider(newProvider);
+
+    return () => {
+      newProvider.destroy();
+      doc.destroy();
+    };
+  }, [item.id]);
+
+  if (!provider || !doc) {
+    return null;
+  }
+
+  return <Editor doc={doc} provider={provider} />;
 }
