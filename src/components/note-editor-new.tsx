@@ -3,41 +3,18 @@ import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import supabase from "@/lib/supabase";
 import SupabaseProvider from "@/lib/y-supabase";
-import { useCreateBlockNote } from "@blocknote/react";
+import { BlockNoteEditor } from "@blocknote/core";
 import type { Tables } from "db.types";
 import { useEffect, useState } from "react";
 import * as Y from "yjs";
 
-function Editor({
-  provider,
-  doc,
-}: {
-  doc: Y.Doc;
-  provider: SupabaseProvider;
-}) {
-  const editor = useCreateBlockNote({
-    collaboration: {
-      fragment: doc.getXmlFragment("document-store"),
-      provider,
-      user: {
-        name: "Lavish",
-        color: "#ff4500",
-      },
-      showCursorLabels: "activity",
-    },
-  });
-
-  return <BlockNoteView editor={editor} />;
-}
-
 export default function NoteEditor({ item }: { item: Tables<"items"> }) {
-  const [doc, setDoc] = useState<Y.Doc | null>(null);
-  const [provider, setProvider] = useState<SupabaseProvider | null>(null);
+  const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
 
   useEffect(() => {
     const doc = new Y.Doc();
 
-    const newProvider = new SupabaseProvider(doc, supabase, {
+    const provider = new SupabaseProvider(doc, supabase, {
       channel: item.id,
       id: item.id,
       tableName: "items",
@@ -45,18 +22,29 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
       resyncInterval: 60 * 1000, // 1 minute
     });
 
-    setDoc(doc);
-    setProvider(newProvider);
+    const editor = BlockNoteEditor.create({
+      collaboration: {
+        fragment: doc.getXmlFragment("document-store"),
+        provider,
+        user: {
+          name: "Lavish",
+          color: "#ff4500",
+        },
+        showCursorLabels: "activity",
+      },
+    });
+
+    setEditor(editor);
 
     return () => {
-      newProvider.destroy();
+      provider.destroy();
       doc.destroy();
     };
   }, [item.id]);
 
-  if (!provider || !doc) {
+  if (!editor) {
     return null;
   }
 
-  return <Editor doc={doc} provider={provider} />;
+  return <BlockNoteView editor={editor} />;
 }
