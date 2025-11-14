@@ -21,8 +21,14 @@
     "trigger:dev": "npx trigger.dev@latest dev"
   },
   "dependencies": {
+    "@blocknote/core": "^0.42.0",
+    "@blocknote/mantine": "^0.42.0",
+    "@blocknote/react": "^0.42.0",
     "@heroui/react": "^2.8.4",
     "@langchain/textsplitters": "^0.1.0",
+    "@mantine/core": "^8.3.7",
+    "@mantine/hooks": "^8.3.7",
+    "@mantine/utils": "^6.0.22",
     "@milkdown/crepe": "^7.16.0",
     "@milkdown/kit": "^7.17.1",
     "@supabase/supabase-js": "^2.58.0",
@@ -50,6 +56,8 @@
     "remove-markdown": "^0.6.2",
     "tailwindcss": "^4.0.6",
     "voyageai": "^0.0.8",
+    "y-webrtc": "^10.3.0",
+    "yjs": "^13.6.27",
     "zod": "^3.25.76"
   },
   "devDependencies": {

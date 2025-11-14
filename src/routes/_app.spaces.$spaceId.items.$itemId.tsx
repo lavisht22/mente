@@ -18,6 +18,7 @@ import ConfirmationModal from "@/components/confirmation-modal";
 
 import type { Tables } from "@/../../db.types";
 import NoteEditor from "@/components/note-editor";
+import NoteEditorNew from "@/components/note-editor-new";
 import supabase from "@/lib/supabase";
 import {
   LucideArrowLeft,
@@ -120,7 +121,8 @@ function RouteComponent() {
       </div>
 
       <div className="p-8 flex-1 overflow-y-auto">
-        {item?.type === "note" && <NoteEditor item={item} />}
+        {item?.type === "note" && <NoteEditorNew item={item} />}
+        {/* {item?.type === "note" && <NoteEditor item={item} />} */}
       </div>
 
       <ConfirmationModal
