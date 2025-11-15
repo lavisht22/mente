@@ -13,7 +13,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useDebounce } from "use-debounce";
 
 import ConfirmationModal from "@/components/confirmation-modal";
 
@@ -55,7 +56,22 @@ function RouteComponent() {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [title, setTitle] = useState(item?.title ?? "");
+  const [debouncedTitle] = useDebounce(title, 300);
   const titleRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    setTitle(item?.title ?? "");
+  }, [item]);
+
+  useEffect(() => {
+    if (titleRef.current && titleRef.current.textContent !== title) {
+      titleRef.current.textContent = title;
+    }
+  }, [title]);
+
+  useEffect(() => {
+    updateTitleMutation.mutate(debouncedTitle);
+  }, [debouncedTitle]);
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -89,9 +105,6 @@ function RouteComponent() {
 
   const updateTitleMutation = useMutation({
     mutationFn: async (newTitle: string) => {
-      // Optimistically update title in UI
-      setTitle(newTitle);
-
       const { error } = await supabase
         .from("items")
         .update({ title: newTitle, updated_at: new Date().toISOString() })
@@ -114,11 +127,15 @@ function RouteComponent() {
         description: "Failed to update title.",
         color: "danger",
       });
-
-      // Revert title on error
-      setTitle(item?.title ?? "");
     },
   });
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLHeadingElement>) => {
+    if (e.key === "Enter" || e.key === "ArrowDown") {
+      e.preventDefault();
+      // TODO: Move focus to editor
+    }
+  };
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -160,10 +177,8 @@ function RouteComponent() {
           ref={titleRef}
           contentEditable
           suppressContentEditableWarning
-          onInput={(e) =>
-            updateTitleMutation.mutate(e.currentTarget.textContent ?? "")
-          }
-          // onKeyDown={handleTitleKeyDown}
+          onInput={(e) => setTitle(e.currentTarget.textContent ?? "")}
+          onKeyDown={handleTitleKeyDown}
           className="text-[42px] font-weight-[400] outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
           data-placeholder="Title"
           aria-label="Note title"
