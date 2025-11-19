@@ -1,5 +1,6 @@
 .bn-container[data-custom] .bn-editor {
   font-family: DM Sans, sans-serif;
+  padding-inline: 0px;
 }
 
 .bn-container[data-custom][data-color-scheme] {

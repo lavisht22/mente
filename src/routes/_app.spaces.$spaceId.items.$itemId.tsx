@@ -171,7 +171,7 @@ function RouteComponent() {
         </div>
       </div>
 
-      <div className="p-8 flex-1 overflow-y-auto">
+      <div className="p-6 flex-1 overflow-y-auto">
         <div className="space-y-4 max-w-3xl mx-auto w-full">
           <h1
             ref={titleRef}
@@ -183,7 +183,7 @@ function RouteComponent() {
               updateTitle(newTitle);
             }}
             onKeyDown={handleTitleKeyDown}
-            className="text-[42px] font-weight-[400] outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+            className="text-3xl mb-8 outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
             data-placeholder="Title"
             aria-label="Note title"
           />
