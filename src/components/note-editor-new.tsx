@@ -129,5 +129,11 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
     return null;
   }
 
-  return <BlockNoteView editor={editor} data-custom />;
+  return (
+    <BlockNoteView
+      className="prose prose-h1:!text-3xl prose-h1:!font-medium prose-h2:!text-2xl prose-h2:!font-medium prose-h3:!text-xl prose-h3:!font-medium"
+      editor={editor}
+      data-custom
+    />
+  );
 }

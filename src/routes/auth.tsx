@@ -160,7 +160,7 @@ function RouteComponent() {
       <div className="flex flex-col items-center gap-4 w-full max-w-md p-4 mx-auto">
         <div className="flex justify-center items-center gap-2 mb-8 border-b border-default-200 p-4 w-fit">
           <Logo size={5} />
-          <h1 className="text-3xl">mente</h1>
+          <h1 className="text-3xl font-medium">mente</h1>
         </div>
 
         <Auth />

@@ -82,7 +82,7 @@ function RouteComponent() {
       </div>
 
       <div className="p-6 flex-1 overflow-auto">
-        <h1 className="text-3xl mb-8">{space?.name}</h1>
+        <h1 className="text-3xl font-medium mb-8">{space?.name}</h1>
 
         {monthKeys.length === 0 ? (
           <div className="text-center text-default-400 py-12">

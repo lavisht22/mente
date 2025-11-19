@@ -183,7 +183,7 @@ function RouteComponent() {
               updateTitle(newTitle);
             }}
             onKeyDown={handleTitleKeyDown}
-            className="text-3xl mb-8 outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+            className="text-3xl font-medium mb-8 outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
             data-placeholder="Title"
             aria-label="Note title"
           />
