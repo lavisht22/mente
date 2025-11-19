@@ -173,17 +173,19 @@ function RouteComponent() {
       </div>
 
       <div className="p-8 flex-1 overflow-y-auto">
-        <h1
-          ref={titleRef}
-          contentEditable
-          suppressContentEditableWarning
-          onInput={(e) => setTitle(e.currentTarget.textContent ?? "")}
-          onKeyDown={handleTitleKeyDown}
-          className="text-[42px] font-weight-[400] outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
-          data-placeholder="Title"
-          aria-label="Note title"
-        />
-        {item?.type === "note" && <NoteEditor item={item} />}
+        <div className="space-y-4 max-w-3xl mx-auto w-full">
+          <h1
+            ref={titleRef}
+            contentEditable
+            suppressContentEditableWarning
+            onInput={(e) => setTitle(e.currentTarget.textContent ?? "")}
+            onKeyDown={handleTitleKeyDown}
+            className="text-[42px] font-weight-[400] outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
+            data-placeholder="Title"
+            aria-label="Note title"
+          />
+          {item?.type === "note" && <NoteEditor item={item} />}
+        </div>
       </div>
 
       <ConfirmationModal
