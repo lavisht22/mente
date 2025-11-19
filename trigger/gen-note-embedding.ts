@@ -4,7 +4,7 @@ import { logger, schemaTask } from "@trigger.dev/sdk";
 import { VoyageAIClient } from "voyageai";
 import { z } from "zod";
 
-import type { Database } from "db.types";
+import type { Database } from "../db.types";
 
 const supabase = createClient<Database>(
   process.env.SUPABASE_URL as string,
@@ -63,7 +63,8 @@ export const genNoteEmbedding = schemaTask({
 
     const contentChunks = await splitter.splitText(markdown);
 
-    const chunks = [];
+    const chunks: { item_id: string; content: string; embedding: string }[] =
+      [];
 
     for (const content of contentChunks) {
       const embedResponse = await voyage.embed({
