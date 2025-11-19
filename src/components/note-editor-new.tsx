@@ -64,8 +64,6 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
         return data?.ydoc ? Uint8Array.from(data.ydoc) : null;
       },
       save: async (content) => {
-        console.log("Saving content", content);
-
         const { error } = await supabase
           .from("items")
           .update({

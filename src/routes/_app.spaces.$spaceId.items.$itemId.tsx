@@ -14,7 +14,7 @@ import {
 } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { useDebounce } from "use-debounce";
+import { useDebouncedCallback } from "use-debounce";
 
 import ConfirmationModal from "@/components/confirmation-modal";
 
@@ -56,7 +56,6 @@ function RouteComponent() {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [title, setTitle] = useState(item?.title ?? "");
-  const [debouncedTitle] = useDebounce(title, 300);
   const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -68,10 +67,6 @@ function RouteComponent() {
       titleRef.current.textContent = title;
     }
   }, [title]);
-
-  useEffect(() => {
-    updateTitleMutation.mutate(debouncedTitle);
-  }, [debouncedTitle]);
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -130,6 +125,10 @@ function RouteComponent() {
     },
   });
 
+  const updateTitle = useDebouncedCallback((newTitle: string) => {
+    updateTitleMutation.mutate(newTitle);
+  }, 300);
+
   const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLHeadingElement>) => {
     if (e.key === "Enter" || e.key === "ArrowDown") {
       e.preventDefault();
@@ -178,7 +177,11 @@ function RouteComponent() {
             ref={titleRef}
             contentEditable
             suppressContentEditableWarning
-            onInput={(e) => setTitle(e.currentTarget.textContent ?? "")}
+            onInput={(e) => {
+              const newTitle = e.currentTarget.textContent ?? "";
+              setTitle(newTitle);
+              updateTitle(newTitle);
+            }}
             onKeyDown={handleTitleKeyDown}
             className="text-[42px] font-weight-[400] outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
             data-placeholder="Title"
