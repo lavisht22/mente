@@ -133,14 +133,24 @@ export default class SupabaseProvider extends EventEmitter {
                     REALTIME_LISTEN_TYPES.BROADCAST,
                     { event: "message" },
                     ({ payload }) => {
-                        this.onMessage(Uint8Array.from(payload), this);
+                        if (!payload || typeof payload !== "object") {
+                            return;
+                        }
+                        const data = (payload as { data?: number[] }).data;
+                        if (!Array.isArray(data)) return;
+                        this.onMessage(Uint8Array.from(data), this);
                     },
                 )
                 .on(
                     REALTIME_LISTEN_TYPES.BROADCAST,
                     { event: "awareness" },
                     ({ payload }) => {
-                        this.onAwareness(Uint8Array.from(payload));
+                        if (!payload || typeof payload !== "object") {
+                            return;
+                        }
+                        const data = (payload as { data?: number[] }).data;
+                        if (!Array.isArray(data)) return;
+                        this.onAwareness(Uint8Array.from(data));
                     },
                 )
                 .subscribe((status, err) => {
@@ -228,7 +238,7 @@ export default class SupabaseProvider extends EventEmitter {
                 this.channel.send({
                     type: "broadcast",
                     event: "awareness",
-                    payload: Array.from(update),
+                    payload: { data: Array.from(update) },
                 });
             }
         });
@@ -237,7 +247,7 @@ export default class SupabaseProvider extends EventEmitter {
                 this.channel.send({
                     type: "broadcast",
                     event: "message",
-                    payload: Array.from(update),
+                    payload: { data: Array.from(update) },
                 });
             }
         });
