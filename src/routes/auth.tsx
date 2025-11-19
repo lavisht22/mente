@@ -71,7 +71,7 @@ function Auth() {
     return (
       <>
         <div className="space-y-1 w-full">
-          <h2 className="text-2xl font-bold">Enter code</h2>
+          <h2 className="text-2xl font-medium">Enter code</h2>
           <p className="text-default-600">We sent a 6-digit code to {email}</p>
         </div>
 
@@ -123,7 +123,7 @@ function Auth() {
   return (
     <>
       <div className="space-y-1 w-full">
-        <h2 className="text-2xl font-bold">Sign in</h2>
+        <h2 className="text-2xl font-medium">Sign in</h2>
         <p className="text-default-600">
           Enter your email to receive a one-time code.
         </p>

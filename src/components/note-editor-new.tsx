@@ -7,9 +7,29 @@ import type { Tables } from "db.types";
 import { useEffect, useRef, useState } from "react";
 import * as Y from "yjs";
 import "@/bn-theme.css";
+import { userQuery } from "@/lib/queries";
+import { useQuery } from "@tanstack/react-query";
 import { customAlphabet } from "nanoid";
 
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
+
+// Simple deterministic hash -> HSL color so the same user is always the same color
+const getUserColor = (identifier: string | null | undefined): string => {
+  const base = identifier ?? "anonymous";
+
+  let hash = 0;
+  for (let i = 0; i < base.length; i++) {
+    // Basic string hash
+    hash = (hash * 31 + base.charCodeAt(i)) | 0;
+  }
+
+  // Map hash to a hue on the color wheel
+  const hue = Math.abs(hash) % 360;
+  const saturation = 70; // keep reasonably vibrant
+  const lightness = 80;
+
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+};
 
 const uploadFileToStorage = async (
   file: File,
@@ -34,6 +54,7 @@ const uploadFileToStorage = async (
 
 export default function NoteEditor({ item }: { item: Tables<"items"> }) {
   const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
+  const { data: user } = useQuery(userQuery);
 
   const getMarkdown = useRef<() => string>(() => {
     if (!editor) {
@@ -84,8 +105,8 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
         fragment: doc.getXmlFragment("document-store"),
         provider,
         user: {
-          name: "Lavish",
-          color: "#ff4500",
+          name: user?.name ?? "Unknown User",
+          color: getUserColor(user?.id ?? user?.name ?? null),
         },
         showCursorLabels: "activity",
       },
@@ -123,7 +144,7 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
       provider.destroy();
       doc.destroy();
     };
-  }, [item.id]);
+  }, [item.id, user?.id, user?.name]);
 
   if (!editor) {
     return null;

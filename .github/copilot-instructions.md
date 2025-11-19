@@ -176,7 +176,7 @@ export default function NoteCard({
 }: NoteCardProps) {
   return (
     <Card className="p-4">
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+      <h3 className="text-lg font-medium mb-2">{title}</h3>
       <p className="text-gray-600 mb-4">{content}</p>
       <div className="flex gap-2">
         <Button size="sm" onPress={() => onEdit(id)}>
