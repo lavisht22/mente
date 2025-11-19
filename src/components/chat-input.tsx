@@ -45,6 +45,10 @@ const MODELS = [
     thinking: false,
   },
   {
+    key: "gemini-3-pro-preview",
+    thinking: true,
+  },
+  {
     key: "gemini-2.5-pro",
     thinking: true,
   },

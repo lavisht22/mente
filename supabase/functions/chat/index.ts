@@ -41,6 +41,8 @@ function getAIChatModel(model: string) {
       return vertex("gemini-2.5-pro");
     case "gemini-2.5-flash":
       return vertex("gemini-2.5-flash");
+    case "gemini-3-pro-preview":
+      return vertex("gemini-3-pro-preview");
     default:
       throw new Error(`Unknown model: ${model}`);
   }
