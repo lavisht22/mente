@@ -70,7 +70,7 @@ function RouteComponent() {
       </div>
 
       <div className="p-6 flex-1 overflow-auto max-w-3xl mx-auto w-full">
-        <h1 className="text-3xl mb-8">Profile</h1>
+        <h1 className="text-3xl font-medium mb-8">Profile</h1>
 
         <div className="flex flex-col gap-8">
           <EditInput

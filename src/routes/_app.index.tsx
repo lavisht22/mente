@@ -27,7 +27,7 @@ function RouteComponent() {
 
   return (
     <div className="flex flex-col h-full py-6">
-      <h1 className="text-3xl ml-6 mb-8">
+      <h1 className="text-3xl font-medium ml-6 mb-8">
         <span>{getGreeting()}</span>
         <span className="font-serif italic">{`${user && `, ${user.name}`}`}</span>
         !
