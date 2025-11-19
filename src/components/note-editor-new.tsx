@@ -68,7 +68,9 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
 
     const provider = new SupabaseProvider(doc, supabase, {
       channel: item.id,
-      resyncInterval: 60 * 1000, // 1 minute
+      // Disable periodic resyncs; state is loaded on connect and kept in sync
+      // via realtime messages.
+      resyncInterval: false,
 
       load: async () => {
         const { data, error } = await supabase

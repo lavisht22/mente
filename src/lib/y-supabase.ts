@@ -24,6 +24,12 @@ export interface SupabaseProviderConfig {
     channel: string;
     awareness?: awarenessProtocol.Awareness;
     resyncInterval?: number | false;
+    /** Debounce interval in ms for document updates before broadcasting to peers. Defaults to 500ms. */
+    updateDebounceMs?: number;
+    /** Debounce interval in ms for awareness updates before broadcasting to peers. Defaults to 1000ms. */
+    awarenessDebounceMs?: number;
+    /** Debounce interval in ms for persisting the document via `save`. Defaults to 1000ms. */
+    saveDebounceMs?: number;
     load: () => Promise<Uint8Array | null>;
     save: (content: Uint8Array) => Promise<void>;
 }
@@ -40,6 +46,17 @@ export default class SupabaseProvider extends EventEmitter {
 
     public version = 0;
 
+    // Debounced update state
+    private pendingUpdate: Uint8Array | null = null;
+    private updateTimer: ReturnType<typeof setTimeout> | null = null;
+
+    // Debounced awareness state
+    private pendingAwarenessUpdate: Uint8Array | null = null;
+    private awarenessTimer: ReturnType<typeof setTimeout> | null = null;
+
+    // Debounced save state
+    private saveTimer: ReturnType<typeof setTimeout> | null = null;
+
     isOnline(online?: boolean): boolean {
         if (!online && online !== false) return this.connected;
         this.connected = online;
@@ -49,12 +66,36 @@ export default class SupabaseProvider extends EventEmitter {
     // biome-ignore lint/suspicious/noExplicitAny: <explanation>
     onDocumentUpdate(update: Uint8Array, origin: any) {
         if (origin !== this) {
-            this.logger(
-                "document updated locally, broadcasting update to peers",
-                this.isOnline(),
-            );
-            this.emit("message", update);
-            this.save();
+            // Merge consecutive updates and debounce broadcasting to reduce
+            // the total number of realtime messages.
+            if (this.pendingUpdate) {
+                this.pendingUpdate = Y.mergeUpdates([
+                    this.pendingUpdate,
+                    update,
+                ]);
+            } else {
+                this.pendingUpdate = update;
+            }
+
+            if (this.updateTimer) {
+                clearTimeout(this.updateTimer);
+            }
+
+            const delay = this.config.updateDebounceMs ?? 500;
+
+            this.updateTimer = setTimeout(() => {
+                const merged = this.pendingUpdate;
+                this.pendingUpdate = null;
+
+                if (!merged) return;
+
+                this.logger(
+                    "document updated locally, broadcasting debounced update to peers",
+                    this.isOnline(),
+                );
+                this.emit("message", merged);
+                this.scheduleSave();
+            }, delay);
         }
     }
 
@@ -65,7 +106,23 @@ export default class SupabaseProvider extends EventEmitter {
             this.awareness,
             changedClients,
         );
-        this.emit("awareness", awarenessUpdate);
+        // Debounce awareness broadcasts to avoid spamming presence updates.
+        if (this.awarenessTimer) {
+            clearTimeout(this.awarenessTimer);
+        }
+
+        // For awareness it's usually fine if the latest update wins, so we
+        // simply keep the last encoded update and send it after the delay.
+        this.pendingAwarenessUpdate = awarenessUpdate;
+
+        const delay = this.config.awarenessDebounceMs ?? 1000;
+
+        this.awarenessTimer = setTimeout(() => {
+            const pending = this.pendingAwarenessUpdate;
+            this.pendingAwarenessUpdate = null;
+            if (!pending) return;
+            this.emit("awareness", pending);
+        }, delay);
     }
 
     removeSelfFromAwarenessOnUnload() {
@@ -327,6 +384,18 @@ export default class SupabaseProvider extends EventEmitter {
             clearInterval(this.resyncInterval);
         }
 
+        if (this.updateTimer) {
+            clearTimeout(this.updateTimer);
+        }
+
+        if (this.awarenessTimer) {
+            clearTimeout(this.awarenessTimer);
+        }
+
+        if (this.saveTimer) {
+            clearTimeout(this.saveTimer);
+        }
+
         if (typeof window !== "undefined") {
             window.removeEventListener(
                 "beforeunload",
@@ -340,5 +409,19 @@ export default class SupabaseProvider extends EventEmitter {
         this.doc.off("update", this.onDocumentUpdate);
 
         if (this.channel) this.disconnect();
+    }
+
+    private scheduleSave() {
+        if (this.saveTimer) {
+            clearTimeout(this.saveTimer);
+        }
+
+        const delay = this.config.saveDebounceMs ?? 1000;
+
+        this.saveTimer = setTimeout(() => {
+            this.save().catch((err) => {
+                this.logger("error during debounced save", err);
+            });
+        }, delay);
     }
 }
