@@ -1,17 +1,40 @@
+import { BlockNoteView } from "@blocknote/mantine";
+import "@blocknote/mantine/style.css";
 import supabase from "@/lib/supabase";
-import { Crepe } from "@milkdown/crepe";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import SupabaseProvider from "@/lib/y-supabase";
+import { BlockNoteEditor } from "@blocknote/core";
 import type { Tables } from "db.types";
 import { useEffect, useRef, useState } from "react";
-
-import "@milkdown/crepe/theme/common/style.css";
-import "@milkdown/crepe/theme/frame.css";
-import "@/milkdown-theme.css";
+import * as Y from "yjs";
+import "@/bn-theme.css";
+import { userQuery } from "@/lib/queries";
+import { useQuery } from "@tanstack/react-query";
 import { customAlphabet } from "nanoid";
 
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
 
-const uploadFile = async (file: File, itemId: string): Promise<string> => {
+// Simple deterministic hash -> HSL color so the same user is always the same color
+const getUserColor = (identifier: string | null | undefined): string => {
+  const base = identifier ?? "anonymous";
+
+  let hash = 0;
+  for (let i = 0; i < base.length; i++) {
+    // Basic string hash
+    hash = (hash * 31 + base.charCodeAt(i)) | 0;
+  }
+
+  // Map hash to a hue on the color wheel
+  const hue = Math.abs(hash) % 360;
+  const saturation = 70; // keep reasonably vibrant
+  const lightness = 80;
+
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+};
+
+const uploadFileToStorage = async (
+  file: File,
+  itemId: string,
+): Promise<string> => {
   const id = nanoid();
 
   const { data, error } = await supabase.storage
@@ -30,180 +53,110 @@ const uploadFile = async (file: File, itemId: string): Promise<string> => {
 };
 
 export default function NoteEditor({ item }: { item: Tables<"items"> }) {
-  const [title, setTitle] = useState(item?.title ?? "");
-  const [markdown, setMarkdown] = useState(item?.markdown ?? "");
-  const editorRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  const crepeRef = useRef<Crepe | null>(null);
-  const isUpdatingFromEditor = useRef(false);
-  const currentItemId = useRef<string | null>(null);
-  const queryClient = useQueryClient();
+  const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
+  const { data: user } = useQuery(userQuery);
 
-  useEffect(() => {
-    if (item) {
-      if (titleRef.current && document.activeElement !== titleRef.current) {
-        setTitle(item.title ?? "");
-      }
-
-      // Only update markdown if it's not coming from the editor itself
-      if (!isUpdatingFromEditor.current) {
-        setMarkdown(item.markdown ?? "");
-      }
+  const getMarkdown = useRef<() => string>(() => {
+    if (!editor) {
+      return "";
     }
-  }, [item]);
-
-  const { mutate: updateItem } = useMutation({
-    mutationFn: async (updatedFields: {
-      title?: string;
-      markdown?: string;
-    }) => {
-      if (!item) return;
-
-      const { error } = await supabase
-        .from("items")
-        .update({
-          ...updatedFields,
-          is_embed_pending: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", item.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      // Don't invalidate the specific item query to prevent re-render
-      queryClient.invalidateQueries({ queryKey: ["items"] });
-    },
+    return editor.blocksToMarkdownLossy();
   });
 
   useEffect(() => {
-    if (!editorRef.current || !item) return;
+    const doc = new Y.Doc();
 
-    // Only re-initialize if the item ID has changed
-    if (currentItemId.current === item.id && crepeRef.current) {
-      return;
-    }
+    const provider = new SupabaseProvider(doc, supabase, {
+      channel: item.id,
+      // Disable periodic resyncs; state is loaded on connect and kept in sync
+      // via realtime messages.
+      resyncInterval: false,
 
-    const initEditor = async () => {
-      console.log("Initializing editor for item:", item.id);
+      load: async () => {
+        const { data, error } = await supabase
+          .from("items")
+          .select("ydoc")
+          .eq("id", item.id)
+          .single();
 
-      const crepe = new Crepe({
-        root: editorRef.current,
-        defaultValue: item.markdown || "",
-        features: {
-          [Crepe.Feature.CodeMirror]: true,
-          [Crepe.Feature.ListItem]: true,
-          [Crepe.Feature.LinkTooltip]: true,
-          [Crepe.Feature.ImageBlock]: true,
-          [Crepe.Feature.BlockEdit]: true,
-          [Crepe.Feature.Table]: true,
-          [Crepe.Feature.Toolbar]: true,
-          [Crepe.Feature.Cursor]: true,
-          [Crepe.Feature.Placeholder]: true,
+        if (error) {
+          console.error("Failed to load note", error);
+          return null;
+        }
+
+        return data?.ydoc ? Uint8Array.from(data.ydoc) : null;
+      },
+      save: async (content) => {
+        const { error } = await supabase
+          .from("items")
+          .update({
+            ydoc: Array.from(content),
+            markdown: getMarkdown.current(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", item.id);
+
+        if (error) {
+          console.error("Failed to save note", error);
+        }
+      },
+    });
+
+    const editor = BlockNoteEditor.create({
+      collaboration: {
+        fragment: doc.getXmlFragment("document-store"),
+        provider,
+        user: {
+          name: user?.name ?? "Unknown User",
+          color: getUserColor(user?.id ?? user?.name ?? null),
         },
-        featureConfigs: {
-          "image-block": {
-            inlineOnUpload: async (file: File) => {
-              return uploadFile(file, item.id);
-            },
-            onUpload: async (file: File) => {
-              return uploadFile(file, item.id);
-            },
-            proxyDomURL: async (url: string) => {
-              // Convert custom URL scheme to public URL
-              if (url.startsWith("storage://")) {
-                const path = url.replace("storage://", "");
+        showCursorLabels: "activity",
+      },
 
-                const { data, error } = await supabase.storage
-                  .from("items")
-                  .createSignedUrl(path, 60);
+      uploadFile: (file: File, _blockId?: string) => {
+        return uploadFileToStorage(file, item.id);
+      },
+      resolveFileUrl: async (url: string) => {
+        // Convert custom URL scheme to public URL
+        if (url.startsWith("storage://")) {
+          const path = url.replace("storage://", "");
 
-                if (error) {
-                  throw error;
-                }
+          const { data, error } = await supabase.storage
+            .from("items")
+            .createSignedUrl(path, 60);
 
-                return data.signedUrl;
-              }
+          if (error) {
+            throw error;
+          }
 
-              return url;
-            },
-          },
-        },
-      });
+          return data.signedUrl;
+        }
 
-      crepeRef.current = crepe;
-      currentItemId.current = item.id;
+        return url;
+      },
+    });
 
-      await crepe.create();
-
-      // Set up event listeners
-      crepe.on((listener) => {
-        listener.markdownUpdated((_ctx, newMarkdown: string) => {
-          isUpdatingFromEditor.current = true;
-          setMarkdown(newMarkdown);
-          setTimeout(() => {
-            isUpdatingFromEditor.current = false;
-          }, 100);
-        });
-      });
+    setEditor(editor);
+    getMarkdown.current = () => {
+      const markdown = editor.blocksToMarkdownLossy(editor.document);
+      return markdown;
     };
-
-    initEditor();
 
     return () => {
-      if (crepeRef.current) {
-        crepeRef.current.destroy();
-        crepeRef.current = null;
-      }
-
-      if (editorRef.current) {
-        editorRef.current.innerHTML = "";
-      }
+      provider.destroy();
+      doc.destroy();
     };
-  }, [item]);
+  }, [item.id, user?.id, user?.name]);
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      if (!item) return;
-      if (title !== item.title || markdown !== item.markdown) {
-        updateItem({ title, markdown });
-      }
-    }, 500);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [title, markdown, item, updateItem]);
-
-  useEffect(() => {
-    if (titleRef.current && titleRef.current.textContent !== title) {
-      titleRef.current.textContent = title;
-    }
-  }, [title]);
-
-  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLHeadingElement>) => {
-    if (e.key === "Enter" || e.key === "ArrowDown") {
-      e.preventDefault();
-      const editorElement = editorRef.current?.querySelector(
-        ".ProseMirror",
-      ) as HTMLElement | null;
-      editorElement?.focus();
-    }
-  };
+  if (!editor) {
+    return null;
+  }
 
   return (
-    <div className="space-y-4 w-full max-w-3xl mx-auto">
-      <h1
-        ref={titleRef}
-        contentEditable
-        suppressContentEditableWarning
-        onInput={(e) => setTitle(e.currentTarget.textContent ?? "")}
-        onKeyDown={handleTitleKeyDown}
-        className="text-[42px] font-weight-[400] outline-none focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400"
-        data-placeholder="Title"
-        aria-label="Note title"
-      />
-      <div ref={editorRef} className="w-full" />
-    </div>
+    <BlockNoteView
+      className="prose prose-h1:!text-3xl prose-h1:!font-medium prose-h2:!text-2xl prose-h2:!font-medium prose-h3:!text-xl prose-h3:!font-medium"
+      editor={editor}
+      data-custom
+    />
   );
 }

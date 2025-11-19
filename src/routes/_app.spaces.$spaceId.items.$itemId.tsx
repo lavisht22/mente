@@ -19,7 +19,7 @@ import { useDebouncedCallback } from "use-debounce";
 import ConfirmationModal from "@/components/confirmation-modal";
 
 import type { Tables } from "@/../../db.types";
-import NoteEditor from "@/components/note-editor-new";
+import NoteEditor from "@/components/note-editor";
 import supabase from "@/lib/supabase";
 import {
   LucideArrowLeft,
