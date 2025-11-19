@@ -3,12 +3,6 @@
     "src/**/*.ts",
     "src/**/*.tsx",
   ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "supabase",
-    "trigger"
-  ],
   "compilerOptions": {
     "target": "ES2022",
     "jsx": "react-jsx",

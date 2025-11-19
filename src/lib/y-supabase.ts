@@ -4,9 +4,8 @@ import debug from "debug";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as Y from "yjs";
 
-import type { RealtimeChannel } from "@supabase/realtime-js";
 import { REALTIME_LISTEN_TYPES } from "@supabase/realtime-js/src/RealtimeChannel";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 
 export const uint8ArrayToBase64 = (bytes: Uint8Array): string => {
     return btoa(String.fromCharCode(...bytes));
