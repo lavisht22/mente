@@ -4,7 +4,6 @@ import debug from "debug";
 import * as awarenessProtocol from "y-protocols/awareness";
 import * as Y from "yjs";
 
-import { REALTIME_LISTEN_TYPES } from "@supabase/realtime-js/src/RealtimeChannel";
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 
 export const uint8ArrayToBase64 = (bytes: Uint8Array): string => {
@@ -186,7 +185,7 @@ export default class SupabaseProvider extends EventEmitter {
         if (this.channel) {
             this.channel
                 .on(
-                    REALTIME_LISTEN_TYPES.BROADCAST,
+                    "broadcast",
                     { event: "message" },
                     ({ payload }) => {
                         if (!payload || typeof payload !== "object") {
@@ -198,7 +197,7 @@ export default class SupabaseProvider extends EventEmitter {
                     },
                 )
                 .on(
-                    REALTIME_LISTEN_TYPES.BROADCAST,
+                    "broadcast",
                     { event: "awareness" },
                     ({ payload }) => {
                         if (!payload || typeof payload !== "object") {
