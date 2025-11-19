@@ -1,11 +1,10 @@
-// import "@blocknote/core/fonts/inter.css";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import supabase from "@/lib/supabase";
 import SupabaseProvider from "@/lib/y-supabase";
 import { BlockNoteEditor } from "@blocknote/core";
 import type { Tables } from "db.types";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as Y from "yjs";
 import "@/bn-theme.css";
 import { customAlphabet } from "nanoid";
@@ -36,15 +35,50 @@ const uploadFileToStorage = async (
 export default function NoteEditor({ item }: { item: Tables<"items"> }) {
   const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
 
+  const getMarkdown = useRef<() => string>(() => {
+    if (!editor) {
+      return "";
+    }
+    return editor.blocksToMarkdownLossy();
+  });
+
   useEffect(() => {
     const doc = new Y.Doc();
 
     const provider = new SupabaseProvider(doc, supabase, {
       channel: item.id,
-      id: item.id,
-      tableName: "items",
-      columnName: "ydoc",
       resyncInterval: 60 * 1000, // 1 minute
+
+      load: async () => {
+        const { data, error } = await supabase
+          .from("items")
+          .select("ydoc")
+          .eq("id", item.id)
+          .single();
+
+        if (error) {
+          console.error("Failed to load note", error);
+          return null;
+        }
+
+        return data?.ydoc ? Uint8Array.from(data.ydoc) : null;
+      },
+      save: async (content) => {
+        console.log("Saving content", content);
+
+        const { error } = await supabase
+          .from("items")
+          .update({
+            ydoc: Array.from(content),
+            markdown: getMarkdown.current(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", item.id);
+
+        if (error) {
+          console.error("Failed to save note", error);
+        }
+      },
     });
 
     const editor = BlockNoteEditor.create({
@@ -82,6 +116,10 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
     });
 
     setEditor(editor);
+    getMarkdown.current = () => {
+      const markdown = editor.blocksToMarkdownLossy(editor.document);
+      return markdown;
+    };
 
     return () => {
       provider.destroy();

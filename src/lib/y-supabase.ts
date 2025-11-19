@@ -22,12 +22,10 @@ export const base64ToUint8Array = (base64: string): Uint8Array => {
 
 export interface SupabaseProviderConfig {
     channel: string;
-    tableName: string;
-    columnName: string;
-    idName?: string;
-    id: string | number;
     awareness?: awarenessProtocol.Awareness;
     resyncInterval?: number | false;
+    load: () => Promise<Uint8Array | null>;
+    save: (content: Uint8Array) => Promise<void>;
 }
 
 export default class SupabaseProvider extends EventEmitter {
@@ -77,16 +75,9 @@ export default class SupabaseProvider extends EventEmitter {
     }
 
     async save() {
-        const content = Array.from(Y.encodeStateAsUpdate(this.doc));
+        const content = Y.encodeStateAsUpdate(this.doc);
 
-        const { error } = await this.supabase
-            .from(this.config.tableName)
-            .update({ [this.config.columnName]: content })
-            .eq(this.config.idName || "id", this.config.id);
-
-        if (error) {
-            throw error;
-        }
+        await this.config.save(content);
 
         this.emit("save", this.version);
     }
@@ -94,20 +85,14 @@ export default class SupabaseProvider extends EventEmitter {
     private async onConnect() {
         this.logger("connected");
 
-        const { data, status } = await this.supabase
-            .from(this.config.tableName)
-            .select<string, { [key: string]: number[] }>(
-                `${this.config.columnName}`,
-            )
-            .eq(this.config.idName || "id", this.config.id)
-            .single();
+        const data = await this.config.load();
 
-        this.logger("retrieved data from supabase", status);
+        this.logger("retrieved data", data ? "found" : "not found");
 
-        if (data?.[this.config.columnName]) {
+        if (data) {
             this.logger("applying update to yjs");
             try {
-                this.applyUpdate(Uint8Array.from(data[this.config.columnName]));
+                this.applyUpdate(data);
             } catch (error) {
                 this.logger(error);
             }
