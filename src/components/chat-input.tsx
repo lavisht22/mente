@@ -270,6 +270,49 @@ export default function ChatInput({
     }
   };
 
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+      const clipboardItems = e.clipboardData?.items;
+      if (!clipboardItems) return;
+
+      const imageFiles: File[] = [];
+
+      for (const item of clipboardItems) {
+        if (item.type.startsWith("image/")) {
+          const file = item.getAsFile();
+          if (file) {
+            imageFiles.push(file);
+          }
+        }
+      }
+
+      if (imageFiles.length === 0) return;
+
+      // Prevent default paste behavior for images
+      e.preventDefault();
+
+      const maxImages = 50;
+
+      // Count existing images
+      const existingImages = attachments.filter((file) =>
+        file.type.startsWith("image/"),
+      );
+
+      // Check image count limit
+      if (existingImages.length + imageFiles.length > maxImages) {
+        addToast({
+          title: "Too many images",
+          description: `You can only attach up to ${maxImages} images at a time.`,
+          color: "danger",
+        });
+        return;
+      }
+
+      setAttachments((prev) => [...prev, ...imageFiles]);
+    },
+    [attachments],
+  );
+
   const removeFile = (index: number) => {
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
@@ -358,6 +401,7 @@ export default function ChatInput({
             maxRows={10}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
           />
