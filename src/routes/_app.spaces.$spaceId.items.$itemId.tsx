@@ -187,7 +187,7 @@ function RouteComponent() {
             data-placeholder="Title"
             aria-label="Note title"
           />
-          {item?.type === "note" && <NoteEditor item={item} />}
+          {item?.type === "note" && <NoteEditor itemId={item.id} />}
         </div>
       </div>
 

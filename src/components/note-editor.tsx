@@ -7,8 +7,8 @@ import type { Tables } from "db.types";
 import { useEffect, useRef, useState } from "react";
 import * as Y from "yjs";
 import "@/bn-theme.css";
-import { userQuery } from "@/lib/queries";
-import { useQuery } from "@tanstack/react-query";
+import { itemQuery, userQuery } from "@/lib/queries";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { customAlphabet } from "nanoid";
 
 const nanoid = customAlphabet("1234567890abcdefghijklmnopqrstuvwxyz", 10);
@@ -52,9 +52,49 @@ const uploadFileToStorage = async (
   return `storage://${data.path}`; // Custom URL scheme to identify storage files
 };
 
-export default function NoteEditor({ item }: { item: Tables<"items"> }) {
+export default function NoteEditor({ itemId }: { itemId: string }) {
+  const queryClient = useQueryClient();
   const [editor, setEditor] = useState<BlockNoteEditor | null>(null);
   const { data: user } = useQuery(userQuery);
+  const { data: item, isLoading: isItemLoading } = useQuery(itemQuery(itemId));
+  const [initialYDoc, setInitialYDoc] = useState<Uint8Array | null>(null);
+
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      content,
+      markdown,
+    }: { content: Uint8Array; markdown: string }) => {
+      const { error } = await supabase
+        .from("items")
+        .update({
+          ydoc: Array.from(content),
+          markdown,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", itemId);
+
+      if (error) {
+        throw error;
+      }
+
+      return {
+        content,
+        markdown,
+      };
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(["item", itemId], (oldItem: Tables<"items">) => {
+        if (!oldItem) return oldItem;
+
+        return {
+          ...oldItem,
+          ydoc: Array.from(data.content),
+          markdown: data.markdown,
+          updated_at: new Date().toISOString(),
+        };
+      });
+    },
+  });
 
   const getMarkdown = useRef<() => string>(() => {
     if (!editor) {
@@ -63,46 +103,41 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
     return editor.blocksToMarkdownLossy();
   });
 
+  const save = useRef((content: Uint8Array) => {
+    updateMutation.mutate({
+      content,
+      markdown: getMarkdown.current(),
+    });
+  });
+
   useEffect(() => {
+    if (!item || !item.ydoc || initialYDoc) {
+      return;
+    }
+
+    setInitialYDoc(Uint8Array.from(item.ydoc));
+  }, [item, initialYDoc]);
+
+  useEffect(() => {
+    if (!initialYDoc) {
+      return;
+    }
+
     const doc = new Y.Doc();
 
     const provider = new SupabaseProvider(doc, supabase, {
-      channel: item.id,
-      // Disable periodic resyncs; state is loaded on connect and kept in sync
-      // via realtime messages.
+      channel: itemId,
       resyncInterval: false,
 
       load: async () => {
-        const { data, error } = await supabase
-          .from("items")
-          .select("ydoc")
-          .eq("id", item.id)
-          .single();
-
-        if (error) {
-          console.error("Failed to load note", error);
-          return null;
-        }
-
-        return data?.ydoc ? Uint8Array.from(data.ydoc) : null;
+        return initialYDoc;
       },
       save: async (content) => {
-        const { error } = await supabase
-          .from("items")
-          .update({
-            ydoc: Array.from(content),
-            markdown: getMarkdown.current(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", item.id);
-
-        if (error) {
-          console.error("Failed to save note", error);
-        }
+        save.current(content);
       },
     });
 
-    const editor = BlockNoteEditor.create({
+    const blockNoteEditor = BlockNoteEditor.create({
       collaboration: {
         fragment: doc.getXmlFragment("document-store"),
         provider,
@@ -114,7 +149,7 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
       },
 
       uploadFile: (file: File, _blockId?: string) => {
-        return uploadFileToStorage(file, item.id);
+        return uploadFileToStorage(file, itemId);
       },
       resolveFileUrl: async (url: string) => {
         // Convert custom URL scheme to public URL
@@ -136,9 +171,13 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
       },
     });
 
-    setEditor(editor);
+    setEditor(blockNoteEditor);
+
     getMarkdown.current = () => {
-      const markdown = editor.blocksToMarkdownLossy(editor.document);
+      const markdown = blockNoteEditor.blocksToMarkdownLossy(
+        blockNoteEditor.document,
+      );
+
       return markdown;
     };
 
@@ -146,9 +185,9 @@ export default function NoteEditor({ item }: { item: Tables<"items"> }) {
       provider.destroy();
       doc.destroy();
     };
-  }, [item.id, user?.id, user?.name]);
+  }, [itemId, initialYDoc, user]);
 
-  if (!editor) {
+  if (!editor || isItemLoading) {
     return null;
   }
 
