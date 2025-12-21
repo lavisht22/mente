@@ -33,16 +33,17 @@ const vertex = createVertex({
 
 function getAIChatModel(model: string) {
   switch (model) {
-    case "gpt-5":
-      return azure("gpt-5");
-    case "gpt-5-chat":
-      return azure("gpt-5-chat");
+    case "gpt-5.2":
+      return azure("gpt-5.2");
+    case "gemini-3-pro-preview":
+      return vertex("gemini-3-pro-preview");
+    case "gemini-3-flash-preview":
+      return vertex("gemini-3-flash-preview");
     case "gemini-2.5-pro":
       return vertex("gemini-2.5-pro");
     case "gemini-2.5-flash":
       return vertex("gemini-2.5-flash");
-    case "gemini-3-pro-preview":
-      return vertex("gemini-3-pro-preview");
+
     default:
       throw new Error(`Unknown model: ${model}`);
   }

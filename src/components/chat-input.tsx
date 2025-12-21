@@ -37,15 +37,15 @@ import TextareaAutosize from "react-textarea-autosize";
 
 const MODELS = [
   {
-    key: "gpt-5",
+    key: "gpt-5.2",
     thinking: true,
   },
   {
-    key: "gpt-5-chat",
-    thinking: false,
+    key: "gemini-3-pro-preview",
+    thinking: true,
   },
   {
-    key: "gemini-3-pro-preview",
+    key: "gemini-3-flash-preview",
     thinking: true,
   },
   {
