@@ -28,6 +28,7 @@ function RouteComponent() {
   const matchRoute = useMatchRoute();
 
   const hideNav =
+    matchRoute({ to: "/chats", fuzzy: false }) ||
     matchRoute({ to: "/chats/$id", fuzzy: false }) ||
     matchRoute({ to: "/spaces/$spaceId/items/$itemId", fuzzy: false });
 
