@@ -88,7 +88,13 @@ function RouteComponent() {
     },
     onSuccess: () => {
       // Navigate away after successful deletion
-      navigate({ to: "/" });
+
+      if (item) {
+        navigate({
+          to: "/spaces/$spaceId",
+          params: { spaceId: item.space_id },
+        });
+      }
     },
     onError: (_err, _variables, context) => {
       // Rollback to previous value on error

@@ -111,11 +111,16 @@ export default function NoteEditor({ itemId }: { itemId: string }) {
   });
 
   useEffect(() => {
-    if (!item || !item.ydoc || initialYDoc) {
+    if (!item) {
       return;
     }
 
-    setInitialYDoc(Uint8Array.from(item.ydoc));
+    if (initialYDoc) {
+      // already set
+      return;
+    }
+
+    setInitialYDoc(Uint8Array.from(item.ydoc ?? []));
   }, [item, initialYDoc]);
 
   useEffect(() => {
